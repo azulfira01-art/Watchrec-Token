@@ -2,6 +2,9 @@
 const BOT = 'WatchRecGameBot';
 const MONETAG_FN = 'show_12011278';                    // Monetag Zone ID: 12011278
 const TADS_WIDGET_ID = 12600;                          // TADS Widget ID
+const LITEBITS_API_KEY = 'lba_c0c7321f755bfd51e73b516612896767';
+const LITEBITS_PLACEMENT_ID = 'BURAYA_LITEBITS_PLACEMENT_ID';   // LiteBits panelinden TAM Placement ID'yi yapıştır
+const LITEBITS_SANDBOX = true;                         // hesap onaylanınca false yap (sandbox demo reklam gösterir, ücret yazmaz)
 const MAX_LIVES = 5, LIFE_REGEN_MS = 30 * 60 * 1000;   // 30 dk'da 1 can
 const REF_WRGP = 500;                                 // davet edilen her yeni oyuncu için ödül
 const APP_SHORT = 'app';                              // BotFather'daki Mini App kısa adı (t.me/WatchRecGameBot/app)
@@ -318,20 +321,43 @@ function showTads() {
     } catch (err) { finish(reject, err); }
   });
 }
-/* Önce Monetag, olmazsa TADS. Ödül yalnızca bir ağ başarılı dönerse, tek sefer verilir. */
+/* C) LiteBits ödüllü reklam */
+let liteAds = null;
+const liteReady = () => LITEBITS_PLACEMENT_ID.indexOf('BURAYA') !== 0 && typeof window.LiteBitsAds === 'function';
+function showLiteBits() {
+  return new Promise((resolve, reject) => {
+    if (!liteReady()) return reject(new Error('litebits-not-ready'));
+    let done = false;
+    const finish = (fn, v) => { if (done) return; done = true; clearTimeout(t); fn(v); };
+    const t = setTimeout(() => finish(reject, new Error('litebits-timeout')), AD_TIMEOUT_MS);
+    try {
+      if (!liteAds) {
+        liteAds = new window.LiteBitsAds({ apiKey: LITEBITS_API_KEY, placementId: LITEBITS_PLACEMENT_ID, baseUrl: 'https://ads.litebits.io', sandbox: LITEBITS_SANDBOX });
+      }
+      liteAds.on('rewarded', () => finish(resolve));                       // ödül yalnızca bu olay gelirse verilir
+      liteAds.on('nofill', () => finish(reject, new Error('litebits-nofill')));
+      Promise.resolve(liteAds.show()).catch(err => finish(reject, err));
+    } catch (err) { finish(reject, err); }
+  });
+}
+/* Reklam ağları: her seferinde rastgele sırayla denenir; ilk başarılı olan ödül verir (tek sefer). */
+const AD_NETWORKS = [
+  { name: 'Monetag', ok: () => typeof window[MONETAG_FN] === 'function', show: showMonetag },
+  { name: 'TADS', ok: () => !!(window.TADS && typeof window.TADS.show === 'function'), show: showTads },
+  { name: 'LiteBits', ok: liteReady, show: showLiteBits }
+];
+function shuffle(arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 async function watchAd(onDone) {
   if (adBusy) return;
   adBusy = true;
   let ok = false;
-  try {
-    try { await showMonetag(); ok = true; }
-    catch (e1) { console.error('Monetag hata:', e1); await showTads(); ok = true; }
-  } catch (e2) {
-    console.error('TADS hata:', e2);
-    toast(tl('ad_none'));
+  const list = shuffle(AD_NETWORKS.filter(n => n.ok()));          // yalnızca hazır olan ağlar
+  for (const n of list) {
+    try { await n.show(); ok = true; break; }
+    catch (err) { console.error(n.name + ' hata:', err); }          // olmadıysa sıradaki ağa geç
   }
   adBusy = false;
-  if (ok) onDone();
+  if (ok) onDone(); else toast(tl('ad_none'));
 }
 /* Buton: can 5'ten azsa aktif → +1 can */
 $('#adBtn').onclick = () => {
@@ -384,6 +410,21 @@ $('#gQuit').onclick = () => {
 document.querySelectorAll('[data-play]').forEach(b => b.onclick = () => startGame(b.dataset.play));
 window.addEventListener('resize', () => { if (cur) fitCanvas(); });
 
+/* ---------- Oyuncu sayısı (gerçek: Supabase players tablosu) ---------- */
+let userCount = Number(localStorage.getItem('wrgp_usercount')) || 0;
+function renderUserCount() {
+  const el = $('#userCount'); if (!el) return;
+  if (userCount > 0) { el.innerHTML = tl('players_count', { n: fmt(userCount) }); el.classList.add('show'); }
+}
+async function loadUserCount() {
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/${SB_TABLE}?select=tg_id`, { headers: Object.assign({ Prefer: 'count=exact', Range: '0-0' }, SB_HEAD) });
+    const m = /\/(\d+)$/.exec(r.headers.get('Content-Range') || '');
+    if (m) { userCount = Number(m[1]); try { localStorage.setItem('wrgp_usercount', String(userCount)); } catch (_) {} renderUserCount(); }
+  } catch (_) {}
+}
+setInterval(loadUserCount, 300000);
+
 /* ---------- Dil seçici ---------- */
 (function () {
   const sel = $('#langSel');
@@ -391,11 +432,11 @@ window.addEventListener('resize', () => { if (cur) fitCanvas(); });
   sel.value = LANG;
   sel.onchange = () => {
     setLang(sel.value);
-    render(); renderInvites();
+    render(); renderInvites(); renderUserCount();
     if ($('#tab-board').classList.contains('active')) renderBoard();
     haptic('light');
   };
   applyI18n();
-  render(); renderInvites();
-  loadRemote();
+  render(); renderInvites(); renderUserCount();
+  loadRemote(); loadUserCount();
 })();
