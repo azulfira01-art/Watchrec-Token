@@ -1,6 +1,7 @@
 /* WatchRec Game Center – uygulama mantığı */
 const BOT = 'WatchRecGameBot';
-const ADSGRAM_BLOCK_ID = 'BURAYA_ADSGRAM_BLOCK_ID';   // AdsGram onayı gelince blok (Unit) ID'yi buraya yaz
+const MONETAG_FN = 'show_12011278';                    // Monetag Zone ID: 12011278
+const TADS_WIDGET_ID = 12600;                          // TADS Widget ID
 const MAX_LIVES = 5, LIFE_REGEN_MS = 30 * 60 * 1000;   // 30 dk'da 1 can
 const REF_WRGP = 500;                                 // davet edilen her yeni oyuncu için ödül
 const APP_SHORT = 'app';                              // BotFather'daki Mini App kısa adı (t.me/WatchRecGameBot/app)
@@ -288,22 +289,51 @@ function modal(html) { $('#modalBox').innerHTML = html; $('#modal').classList.re
 function closeModal() { $('#modal').classList.add('hidden'); }
 window.closeModal = closeModal;
 
-/* ---------- Reklam (AdsGram) ---------- */
+/* ---------- Reklam (Monetag + TADS) ---------- */
 let adBusy = false;
+const AD_TIMEOUT_MS = 180000;   // callback hiç gelmezse buton sonsuza kadar kilitli kalmasın
+
+/* A) Monetag ödüllü reklam – Zone 12011278 */
+function showMonetag() {
+  return new Promise((resolve, reject) => {
+    const fn = window[MONETAG_FN];
+    if (typeof fn !== 'function') return reject(new Error('monetag-sdk-missing'));
+    const t = setTimeout(() => reject(new Error('monetag-timeout')), AD_TIMEOUT_MS);
+    Promise.resolve(fn()).then(() => { clearTimeout(t); resolve(); }).catch(err => { clearTimeout(t); reject(err); });
+  });
+}
+/* B) TADS ödüllü reklam – Widget 12600 */
+function showTads() {
+  return new Promise((resolve, reject) => {
+    if (!window.TADS || typeof window.TADS.show !== 'function') return reject(new Error('tads-sdk-missing'));
+    let done = false;
+    const finish = (fn, v) => { if (done) return; done = true; clearTimeout(t); fn(v); };
+    const t = setTimeout(() => finish(reject, new Error('tads-timeout')), AD_TIMEOUT_MS);
+    try {
+      window.TADS.show({
+        widgetId: TADS_WIDGET_ID,
+        onSuccess: () => finish(resolve),
+        onError: err => finish(reject, err || new Error('tads-error'))
+      });
+    } catch (err) { finish(reject, err); }
+  });
+}
+/* Önce Monetag, olmazsa TADS. Ödül yalnızca bir ağ başarılı dönerse, tek sefer verilir. */
 async function watchAd(onDone) {
   if (adBusy) return;
   adBusy = true;
+  let ok = false;
   try {
-    if (!window.Adsgram || ADSGRAM_BLOCK_ID.startsWith('BURAYA')) throw new Error('no-ads');
-    const ctl = window.Adsgram.init({ blockId: ADSGRAM_BLOCK_ID });
-    await ctl.show();               // reklam sonuna kadar izlenmezse hata fırlatır
-    onDone();
-  } catch (e) {
-    toast(e && e.message === 'no-ads' ? tl('ad_none') : tl('ad_fail'));
+    try { await showMonetag(); ok = true; }
+    catch (e1) { console.error('Monetag hata:', e1); await showTads(); ok = true; }
+  } catch (e2) {
+    console.error('TADS hata:', e2);
+    toast(tl('ad_none'));
   }
   adBusy = false;
+  if (ok) onDone();
 }
-/* Buton 1: can 5'ten azsa aktif → +1 can */
+/* Buton: can 5'ten azsa aktif → +1 can */
 $('#adBtn').onclick = () => {
   if (S.lives >= MAX_LIVES) return;
   watchAd(() => { S.lives = Math.min(MAX_LIVES, S.lives + 1); save(); render(); toast(tl('got_life')); });
