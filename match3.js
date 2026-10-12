@@ -4,7 +4,7 @@ const Match3 = (() => {
   const MOVES = 15;            // en fazla 15 hamle
   const TIME = 60000;          // 60 saniye (ms)
   const INTRO = 2400;          // 3-2-1-BAŞLA geri sayımı (ms)
-  const PTS_PER_WRGP = 120, MAX_REWARD = 15;
+  const PTS_PER_WRGP = 250, MAX_REWARD = 8;   // 2000 puan = en yüksek ödül (8 WRGP)
   const SP = CS * 1.5;         // sprite boyutu (parlama payı dahil)
   const GEMS = [
     { light: '#ffb3c6', base: '#ff2d63', dark: '#7a0525' },   // yakut (daire)

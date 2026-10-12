@@ -1,8 +1,9 @@
 /* WatchRec Game Center – uygulama mantığı */
 const BOT = 'WatchRecGameBot';
-const ADSGRAM_BLOCK_ID = '53066';                     // AdsGram blok ID
+const ADSGRAM_BLOCK_ID = 'BURAYA_ADSGRAM_BLOCK_ID';   // AdsGram onayı gelince blok (Unit) ID'yi buraya yaz
 const MAX_LIVES = 5, LIFE_REGEN_MS = 30 * 60 * 1000;   // 30 dk'da 1 can
-const AD_WRGP = 9;                                    // can fullken reklam ödülü
+const REF_WRGP = 500;                                 // davet edilen her yeni oyuncu için ödül
+const APP_SHORT = 'app';                              // BotFather'daki Mini App kısa adı (t.me/WatchRecGameBot/app)
 const DAILY = [10, 15, 20, 30, 40, 60, 100];
 const DAY = 86400000;
 const MAX_WRGP = 999999999;                           // en fazla bakiye
@@ -30,15 +31,17 @@ const $ = s => document.querySelector(s);
 const tgUser = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) || null;
 const USER_ID = tgUser ? tgUser.id : 'demo';
 const TG_NAME = tgUser ? (tgUser.first_name || tgUser.username || '') : '';
+const REF_NAME = String(tgUser ? (tgUser.username ? '@' + tgUser.username : (tgUser.first_name || 'Player')) : 'Player').slice(0, 32);
 const getName = () => TG_NAME || tl('you_name');
 const KEY = 'wrgp_state_' + USER_ID;
 
 /* ---------- Durum (localStorage) ---------- */
-const def = { upd: 0, wrgp: 100, lives: MAX_LIVES, lastRegen: Date.now(), streak: 0, lastClaim: 0, best: { m3: 0, vf: 0 }, invited: 0, refDone: false };
+const def = { upd: 0, wrgp: 100, lives: MAX_LIVES, lastRegen: Date.now(), streak: 0, lastClaim: 0, best: { m3: 0, vf: 0 }, invited: 0, refDone: false, refPaid: [] };
 let S;
 const freshDevice = !localStorage.getItem(KEY);   // bu cihazda daha önce kayıt yok
 try { S = Object.assign({}, def, JSON.parse(localStorage.getItem(KEY) || '{}')); S.best = Object.assign({}, def.best, S.best); } catch (_) { S = Object.assign({}, def); }
 S.wrgp = clampW(S.wrgp);
+S.refPaid = Array.isArray(S.refPaid) ? S.refPaid.slice() : [];
 if (!freshDevice && !S.upd) { S.upd = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (_) {} }   // eski kayıt: ilk kez zaman damgası al
 const save = () => { S.upd = Date.now(); try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (_) {} scheduleSync(); };
 
@@ -72,6 +75,7 @@ function mergeRemote(row) {
   M.lastClaim = seriesSrc.lastClaim; M.streak = seriesSrc.streak;
   M.invited = Math.max(L.invited || 0, R.invited || 0);
   M.refDone = !!(L.refDone || R.refDone);
+  M.refPaid = Array.from(new Set([].concat(L.refPaid || [], R.refPaid || []).map(Number)));   // ödülü verilen davetler: birleşim
   if (!M.referrer) M.referrer = L.referrer || R.referrer;
   M.lives = Math.min(MAX_LIVES, Math.max(0, Math.floor(Number(M.lives) || 0)));
   M.upd = Math.max(Number(L.upd) || 0, Number(rs.upd) || 0, 1);
@@ -90,8 +94,10 @@ async function loadRemote() {
     if (!r.ok) throw new Error('http ' + r.status);
     const rows = await r.json();
     if (rows[0]) mergeRemote(rows[0]);
+    else if (REF_FROM && !S.refDone) await registerReferral();   // yepyeni oyuncu + davet linki: davet kaydı
     remoteReady = true; lastPull = Date.now();
     render(); scheduleSync();
+    refreshInvites();
   } catch (_) {
     if (!remoteReady) {
       if (++loadTries < 8) setTimeout(loadRemote, 3000 * loadTries);
@@ -139,7 +145,6 @@ function render() {
   document.querySelectorAll('[data-play]').forEach(b => b.disabled = out);
   const full = S.lives >= MAX_LIVES;
   $('#adBtn').disabled = full;
-  $('#adWrgpBtn').disabled = !full;
   const left = LIFE_REGEN_MS - (Date.now() - S.lastRegen);
   $('#lifeTimer').textContent = S.lives >= MAX_LIVES ? tl('life_full') : tl('life_next', { m: Math.max(0, Math.floor(left / 60000)), s: Math.max(0, Math.floor(left / 1000) % 60) });
   renderDaily();
@@ -152,6 +157,7 @@ document.querySelectorAll('.nav button').forEach(b => b.onclick = () => {
   document.querySelectorAll('.nav button').forEach(x => x.classList.toggle('active', x === b));
   document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.id === 'tab-' + b.dataset.tab));
   if (b.dataset.tab === 'board') renderBoard();
+  if (b.dataset.tab === 'invite') refreshInvites();
   haptic('light');
 });
 
@@ -180,8 +186,10 @@ $('#claimBtn').onclick = () => {
   modal(`<h2>${tl('daily_modal')}</h2><div class="reward">+${DAILY[st.next]} WRGP</div><p>${tl('streak_msg', { n: S.streak })}</p><button class="btn primary" onclick="closeModal()">${tl('great')}</button>`);
 };
 
-/* ---------- Davet ---------- */
-const refLink = `https://t.me/${BOT}?start=ref_${USER_ID}`;
+/* ---------- Davet ----------
+   Davet linki Mini App'in doğrudan linkidir (startapp). Yeni oyuncu bu linkle açınca Supabase'deki
+   "referrals" tablosuna kaydedilir; davet eden uygulamayı açınca her yeni kayıt için REF_WRGP alır. */
+const refLink = `https://t.me/${BOT}/${APP_SHORT}?startapp=ref_${USER_ID}`;
 $('#refLink').textContent = refLink;
 $('#copyBtn').onclick = async () => {
   try { await navigator.clipboard.writeText(refLink); } catch (_) {
@@ -193,11 +201,56 @@ $('#shareBtn').onclick = () => {
   const url = 'https://t.me/share/url?url=' + encodeURIComponent(refLink) + '&text=' + encodeURIComponent(tl('share_text'));
   if (tg && tg.openTelegramLink) tg.openTelegramLink(url); else window.open(url, '_blank');
 };
-/* Yeni kullanıcı bir davet linkiyle geldiyse: SADECE BİLDİRİM. +50 ödülü sunucu tarafında verilmelidir. */
-(function () {
-  const sp = tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param;
-  if (sp && sp.startsWith('ref_') && !S.refDone) { S.refDone = true; S.referrer = sp.slice(4); save(); /* TODO: fetch('/api/referral', {initData: tg.initData}) */ }
-})();
+function startParam() {
+  let sp = tg && tg.initDataUnsafe && tg.initDataUnsafe.start_param;
+  if (!sp && tg && tg.initData) { try { sp = new URLSearchParams(tg.initData).get('start_param'); } catch (_) {} }
+  if (!sp) { try { sp = new URLSearchParams(location.hash.slice(1)).get('tgWebAppStartParam'); } catch (_) {} }
+  return sp || '';
+}
+const REF_FROM = (() => { const m = /^ref_(\d{1,15})$/.exec(startParam()); return m && m[1] !== String(USER_ID) ? Number(m[1]) : 0; })();
+async function registerReferral() {
+  // Yalnızca hiç kaydı olmayan (yepyeni) oyuncular için çağrılır; aynı oyuncu bir kez kaydedilir.
+  let r;
+  try {
+    r = await fetch(`${SB_URL}/rest/v1/referrals?on_conflict=invitee_id`, {
+      method: 'POST',
+      headers: Object.assign({ Prefer: 'resolution=ignore-duplicates,return=minimal' }, SB_HEAD),
+      body: JSON.stringify({ invitee_id: Number(USER_ID), inviter_id: REF_FROM, invitee_name: REF_NAME })
+    });
+  } catch (e) { throw e; }                       // bağlantı yok: loadRemote yeniden dener
+  if (r.status >= 500) throw new Error('ref http ' + r.status);
+  if (r.ok) { S.refDone = true; S.referrer = String(REF_FROM); saveLocalOnly(); }
+}
+let invRows = [], invBusy = false;
+function renderInvites() {
+  const el = $('#invList'); if (!el) return;
+  el.innerHTML = invRows.length
+    ? invRows.map((p, i) => `<div class="lb"><span class="rk">${i + 1}</span><span class="nm">${esc(p.invitee_name || '—')}</span><span class="sc">+${fmt(REF_WRGP)}</span></div>`).join('')
+    : '<p class="muted">' + tl('inv_empty') + '</p>';
+}
+async function refreshInvites() {
+  if (USER_ID === 'demo' || !remoteReady || invBusy) return;
+  invBusy = true;
+  try {
+    const r = await fetch(`${SB_URL}/rest/v1/referrals?select=invitee_id,invitee_name,created_at&inviter_id=eq.${Number(USER_ID)}&order=created_at.desc&limit=500`, { headers: SB_HEAD });
+    if (!r.ok) throw new Error('http ' + r.status);
+    invRows = await r.json();
+    const paid = new Set(S.refPaid.map(String));
+    const fresh = invRows.filter(x => !paid.has(String(x.invitee_id)));
+    if (invRows.length > (S.invited || 0)) S.invited = invRows.length;
+    if (fresh.length) {
+      fresh.forEach(x => S.refPaid.push(Number(x.invitee_id)));
+      const gain = fresh.length * REF_WRGP;
+      S.wrgp = clampW(S.wrgp + gain);
+      save(); render(); haptic('medium');
+      const msg = tl('ref_joined', { n: fresh.length });
+      if (cur || !$('#modal').classList.contains('hidden')) toast('👥 +' + fmt(gain) + ' WRGP');
+      else modal(`<h2>${tl('ref_modal')}</h2><div class="reward">+${fmt(gain)} WRGP</div><p>${msg}</p><button class="btn primary" onclick="closeModal()">${tl('great')}</button>`);
+    } else if (S.invited !== undefined) { render(); }
+    renderInvites();
+  } catch (_) {}
+  invBusy = false;
+}
 
 /* ---------- Liderlik (Supabase) ---------- */
 let boardSeq = 0;
@@ -255,11 +308,6 @@ $('#adBtn').onclick = () => {
   if (S.lives >= MAX_LIVES) return;
   watchAd(() => { S.lives = Math.min(MAX_LIVES, S.lives + 1); save(); render(); toast(tl('got_life')); });
 };
-/* Buton 2: yalnızca can 5/5 iken aktif → +9 WRGP */
-$('#adWrgpBtn').onclick = () => {
-  if (S.lives < MAX_LIVES) return;
-  watchAd(() => { S.wrgp = clampW(S.wrgp + AD_WRGP); save(); render(); toast(tl('got_wrgp', { n: AD_WRGP })); });
-};
 
 /* ---------- Oyun yöneticisi ---------- */
 let cur = null;
@@ -313,11 +361,11 @@ window.addEventListener('resize', () => { if (cur) fitCanvas(); });
   sel.value = LANG;
   sel.onchange = () => {
     setLang(sel.value);
-    render();
+    render(); renderInvites();
     if ($('#tab-board').classList.contains('active')) renderBoard();
     haptic('light');
   };
   applyI18n();
-  render();
+  render(); renderInvites();
   loadRemote();
 })();

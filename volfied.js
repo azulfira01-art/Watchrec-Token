@@ -373,7 +373,7 @@ const Volfied = (() => {
     function finish(win, why) {
       if (!alive || state === 'over') return;
       state = 'over'; dir = null;
-      const reward = cleared * 2 + (cleared >= NL ? 10 : Math.floor(pct * 100 / 35));
+      const reward = cleared * 5 + (cleared >= NL ? 50 : 0);   // bölüm başı 5 WRGP, 10 bölüm bitince +50
       const title = win ? tl('vf_win') : (why === 'time' ? tl('time_up') : tl('lives_out'));
       ui.end({ kind: 'vf', score, reward, win, title,
         lines: [tl('vf_l1', { c: cleared, n: NL }), tl('vf_l2', { p: Math.round(pct * 100) }), tl('vf_l3', { s: score }),
