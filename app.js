@@ -312,19 +312,31 @@ function showMonetag() {
     Promise.resolve(fn()).then(() => { clearTimeout(t); resolve(); }).catch(err => { clearTimeout(t); reject(err); });
   });
 }
-/* B) TADS ödüllü reklam – Widget 12600 */
+/* B) TADS ödüllü reklam – Widget 12600
+   SDK'nın hangi küresel nesneyi açtığı belgeden doğrulanamadı; bu yüzden bilinen iki biçim de denenir
+   ve hangisinin bulunduğu konsola yazılır. */
+function tadsGlobal() { return window.TADS || window.tads || window.Tads || null; }
+const tadsReady = () => { const g = tadsGlobal(); return !!g && (typeof g.show === 'function' || typeof g.init === 'function'); };
 function showTads() {
   return new Promise((resolve, reject) => {
-    if (!window.TADS || typeof window.TADS.show !== 'function') return reject(new Error('tads-sdk-missing'));
+    const g = tadsGlobal();
+    if (!g) return reject(new Error('tads-sdk-missing'));
     let done = false;
     const finish = (fn, v) => { if (done) return; done = true; clearTimeout(t); fn(v); };
     const t = setTimeout(() => finish(reject, new Error('tads-timeout')), AD_TIMEOUT_MS);
     try {
-      window.TADS.show({
-        widgetId: TADS_WIDGET_ID,
-        onSuccess: () => finish(resolve),
-        onError: err => finish(reject, err || new Error('tads-error'))
-      });
+      if (typeof g.show === 'function') {
+        g.show({ widgetId: TADS_WIDGET_ID, onSuccess: () => finish(resolve), onError: err => finish(reject, err || new Error('tads-error')) });
+      } else if (typeof g.init === 'function') {
+        const ctrl = g.init({
+          widgetId: TADS_WIDGET_ID, type: 'video',
+          onShowReward: () => finish(resolve),
+          onAdsNotFound: () => finish(reject, new Error('tads-nofill'))
+        });
+        if (!ctrl || typeof ctrl.loadAd !== 'function') return finish(reject, new Error('tads-bad-controller'));
+        Promise.resolve(ctrl.loadAd()).then(ad => { if (typeof ad === 'function') ad(); else if (ctrl.showAd) ctrl.showAd(); })
+          .catch(err => finish(reject, err));
+      } else finish(reject, new Error('tads-unknown-api'));
     } catch (err) { finish(reject, err); }
   });
 }
@@ -356,7 +368,7 @@ function showLiteBits() {
 /* Reklam ağları: her seferinde rastgele sırayla denenir; ilk başarılı olan ödül verir (tek sefer). */
 const AD_NETWORKS = [
   { name: 'Monetag', ok: () => typeof window[MONETAG_FN] === 'function', show: showMonetag },
-  { name: 'TADS', ok: () => !!(window.TADS && typeof window.TADS.show === 'function'), show: showTads },
+  { name: 'TADS', ok: tadsReady, show: showTads },
   { name: 'LiteBits', ok: liteReady, show: showLiteBits }
 ];
 function shuffle(arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
@@ -378,12 +390,17 @@ $('#adBtn').onclick = () => {
   watchAd(() => { S.lives = Math.min(MAX_LIVES, S.lives + 1); save(); render(); toast(tl('got_life')); });
 };
 
+/* ---------- Telegram dikey kaydırma kilidi (oyun sırasında aşağı kaydırarak kapanmayı engeller) ---------- */
+function lockSwipes() { try { if (tg && tg.disableVerticalSwipes) tg.disableVerticalSwipes(); } catch (_) {} }
+function unlockSwipes() { try { if (tg && tg.enableVerticalSwipes) tg.enableVerticalSwipes(); } catch (_) {} }
+
 /* ---------- Oyun yöneticisi ---------- */
 let cur = null;
 const ui = {
   hud: h => { $('#gInfo').innerHTML = h; },
   hint: h => { $('#gHint').textContent = h; },
   end: r => {
+    unlockSwipes();   // oyun bitti: normal kaydırma geri açılır
     if (r.reward > 0) S.wrgp = clampW(S.wrgp + r.reward);
     if (r.score > S.best[r.kind]) S.best[r.kind] = r.score;
     save(); render();
@@ -404,6 +421,7 @@ window.startGame = function (kind) {
   quitGame(true);
   S.lives--; S.lastRegen = S.lives === MAX_LIVES - 1 ? Date.now() : S.lastRegen; save(); render();
   $('#game').classList.remove('hidden');
+  lockSwipes();   // oyun başladı: aşağı kaydırarak kapatma/küçültme kapalı
   $('#gTitle').textContent = kind === 'm3' ? '💎 Match-3' : '📐 Volfied';
   const cv = $('#cv');
   // yeni canvas (eski olay dinleyicileri temizlensin)
@@ -413,6 +431,7 @@ window.startGame = function (kind) {
 };
 window.quitGame = function (silent) {
   if (cur) { cur.stop(); cur = null; }
+  unlockSwipes();
   $('#game').classList.add('hidden');
 };
 $('#gQuit').onclick = () => {
@@ -438,3 +457,9 @@ window.addEventListener('resize', () => { if (cur) fitCanvas(); });
   render(); renderInvites();
   loadRemote();
 })();
+
+/* Tanı: TADS SDK yüklendi mi? (Konsolda görülür) */
+window.addEventListener('load', () => setTimeout(() => {
+  const g = tadsGlobal();
+  console.log('TADS SDK:', g ? ('bulundu, alanlar: ' + Object.keys(g).join(', ')) : 'BULUNAMADI (script yüklenmedi ya da farklı bir ad kullanıyor)');
+}, 2000));
