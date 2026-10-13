@@ -2,11 +2,10 @@
 const BOT = 'WatchRecGameBot';
 const MONETAG_FN = 'show_12011278';                    // Monetag Zone ID: 12011278
 const TADS_WIDGET_ID = 12600;                          // TADS Widget ID
-const LITEBITS_API_KEY = 'lba_c0c7321f755bfd51e73b516612896767';
-const LITEBITS_PLACEMENT_ID = 'BURAYA_LITEBITS_PLACEMENT_ID';   // LiteBits panelinden TAM Placement ID'yi yapıştır
-const LITEBITS_SANDBOX = true;                         // hesap onaylanınca false yap (sandbox demo reklam gösterir, ücret yazmaz)
+const LITEBITS_API_KEY = 'lba_242cbbfc8cf72476a6fa66af209f1f63';
+const LITEBITS_PLACEMENT_ID = 'a8a5c64c-8aa2-4b26-ba39-8c18b72f79be';   // LiteBits Placement ID
 const MAX_LIVES = 5, LIFE_REGEN_MS = 30 * 60 * 1000;   // 30 dk'da 1 can
-const REF_WRGP = 500;                                 // davet edilen her yeni oyuncu için ödül
+const REF_WRGP = 200;                                 // davet edilen her yeni oyuncu için ödül
 const APP_SHORT = 'app';                              // BotFather'daki Mini App kısa adı (t.me/WatchRecGameBot/app)
 const DAILY = [10, 15, 20, 30, 40, 60, 100];
 const DAY = 86400000;
@@ -191,8 +190,8 @@ $('#claimBtn').onclick = () => {
 };
 
 /* ---------- Davet ----------
-   Davet linki Mini App'in doğrudan linkidir (startapp). Yeni oyuncu bu linkle açınca Supabase'deki
-   "referrals" tablosuna kaydedilir; davet eden uygulamayı açınca her yeni kayıt için REF_WRGP alır. */
+   Davet linki Mini App'in doğrudan linkidir (startapp). Yeni oyuncu bu linkle açınca davet kaydı
+   sunucuda (Edge Function) yapılır; davet eden uygulamayı açınca her yeni kayıt için ödülü sunucudan alır. */
 const refLink = `https://t.me/${BOT}/${APP_SHORT}?startapp=ref_${USER_ID}`;
 $('#refLink').textContent = refLink;
 $('#copyBtn').onclick = async () => {
@@ -212,45 +211,53 @@ function startParam() {
   return sp || '';
 }
 const REF_FROM = (() => { const m = /^ref_(\d{1,15})$/.exec(startParam()); return m && m[1] !== String(USER_ID) ? Number(m[1]) : 0; })();
+/* Davet doğrulaması SUNUCUDA yapılır (Supabase Edge Function "referral"):
+   Telegram imzalı initData kontrol edilir, davet kaydı ve ödül yalnızca sunucudan gelir. */
+const REF_FN = `${SB_URL}/functions/v1/referral`;
+let refReward = REF_WRGP;
+async function refApi(body) {
+  const r = await fetch(REF_FN, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', apikey: SB_KEY },
+    body: JSON.stringify(Object.assign({ initData: (tg && tg.initData) || '' }, body))
+  });
+  if (r.status >= 500) throw new Error('ref http ' + r.status);     // geçici hata: sonra yeniden denenir
+  let data = null; try { data = await r.json(); } catch (_) {}
+  return { status: r.status, data };
+}
 async function registerReferral() {
-  // Yalnızca hiç kaydı olmayan (yepyeni) oyuncular için çağrılır; aynı oyuncu bir kez kaydedilir.
-  let r;
-  try {
-    r = await fetch(`${SB_URL}/rest/v1/referrals?on_conflict=invitee_id`, {
-      method: 'POST',
-      headers: Object.assign({ Prefer: 'resolution=ignore-duplicates,return=minimal' }, SB_HEAD),
-      body: JSON.stringify({ invitee_id: Number(USER_ID), inviter_id: REF_FROM, invitee_name: REF_NAME })
-    });
-  } catch (e) { throw e; }                       // bağlantı yok: loadRemote yeniden dener
-  if (r.status >= 500) throw new Error('ref http ' + r.status);
-  if (r.ok) { S.refDone = true; S.referrer = String(REF_FROM); saveLocalOnly(); }
+  // Yalnızca hiç kaydı olmayan (yepyeni) oyuncular için çağrılır; son kararı sunucu verir.
+  if (!tg || !tg.initData) return;
+  const { data } = await refApi({ action: 'register', ref: REF_FROM });
+  if (data && data.ok) { S.refDone = true; if (data.result === 'registered') S.referrer = String(REF_FROM); saveLocalOnly(); }
 }
 let invRows = [], invBusy = false;
 function renderInvites() {
   const el = $('#invList'); if (!el) return;
   el.innerHTML = invRows.length
-    ? invRows.map((p, i) => `<div class="lb"><span class="rk">${i + 1}</span><span class="nm">${esc(p.invitee_name || '—')}</span><span class="sc">+${fmt(REF_WRGP)}</span></div>`).join('')
+    ? invRows.map((p, i) => `<div class="lb"><span class="rk">${i + 1}</span><span class="nm">${esc(p.invitee_name || '—')}</span><span class="sc">+${fmt(refReward)}</span></div>`).join('')
     : '<p class="muted">' + tl('inv_empty') + '</p>';
 }
 async function refreshInvites() {
-  if (USER_ID === 'demo' || !remoteReady || invBusy) return;
+  if (USER_ID === 'demo' || !remoteReady || invBusy || !tg || !tg.initData) return;
   invBusy = true;
   try {
-    const r = await fetch(`${SB_URL}/rest/v1/referrals?select=invitee_id,invitee_name,created_at&inviter_id=eq.${Number(USER_ID)}&order=created_at.desc&limit=500`, { headers: SB_HEAD });
-    if (!r.ok) throw new Error('http ' + r.status);
-    invRows = await r.json();
-    const paid = new Set(S.refPaid.map(String));
-    const fresh = invRows.filter(x => !paid.has(String(x.invitee_id)));
+    // Sunucu: yeni (ödülü verilmemiş) davetleri atomik olarak işaretler, ödül miktarını ve listeyi döndürür.
+    const { status, data } = await refApi({ action: 'claim', paid: S.refPaid.slice(-500) });
+    if (!data || !data.ok) throw new Error('claim ' + status);
+    invRows = Array.isArray(data.list) ? data.list : [];
+    if (Number(data.reward) > 0) refReward = Number(data.reward);
     if (invRows.length > (S.invited || 0)) S.invited = invRows.length;
-    if (fresh.length) {
-      fresh.forEach(x => S.refPaid.push(Number(x.invitee_id)));
-      const gain = fresh.length * REF_WRGP;
+    const claimed = (data.claimed || []).map(Number);
+    if (claimed.length) {
+      claimed.forEach(id => { if (S.refPaid.indexOf(id) < 0) S.refPaid.push(id); });
+      const gain = clampW(Number(data.gain) || 0);
       S.wrgp = clampW(S.wrgp + gain);
       save(); render(); haptic('medium');
-      const msg = tl('ref_joined', { n: fresh.length });
+      const msg = tl('ref_joined', { n: claimed.length });
       if (cur || !$('#modal').classList.contains('hidden')) toast('👥 +' + fmt(gain) + ' WRGP');
       else modal(`<h2>${tl('ref_modal')}</h2><div class="reward">+${fmt(gain)} WRGP</div><p>${msg}</p><button class="btn primary" onclick="closeModal()">${tl('great')}</button>`);
-    } else if (S.invited !== undefined) { render(); }
+    } else { render(); }
     renderInvites();
   } catch (_) {}
   invBusy = false;
@@ -263,7 +270,7 @@ async function renderBoard() {
   el.innerHTML = '<p class="muted">' + tl('board_loading') + '</p>';
   try {
     await syncScore();
-    const r = await fetch(`${SB_URL}/rest/v1/${SB_TABLE}?select=tg_id,name,wrgp&order=wrgp.desc&limit=50`, { headers: SB_HEAD });
+    const r = await fetch(`${SB_URL}/rest/v1/${SB_TABLE}?select=tg_id,name,wrgp&order=wrgp.desc&limit=200`, { headers: SB_HEAD });
     if (!r.ok) throw new Error('http ' + r.status);
     const rows = await r.json();
     let myRank = 0;
@@ -322,21 +329,27 @@ function showTads() {
   });
 }
 /* C) LiteBits ödüllü reklam */
-let liteAds = null;
-const liteReady = () => LITEBITS_PLACEMENT_ID.indexOf('BURAYA') !== 0 && typeof window.LiteBitsAds === 'function';
+let liteAds = null, liteCb = null;
+const liteReady = () => !!LITEBITS_PLACEMENT_ID && typeof window.LiteBitsAds === 'function';
+function liteInit() {
+  if (liteAds) return liteAds;
+  liteAds = new window.LiteBitsAds({ apiKey: LITEBITS_API_KEY, placementId: LITEBITS_PLACEMENT_ID, baseUrl: 'https://ads.litebits.io' });
+  liteAds.on('rewarded', r => { console.log('LiteBits verified', r); if (liteCb) liteCb.ok(); });   // ödül yalnızca bu olay gelirse verilir
+  liteAds.on('nofill', () => { if (liteCb) liteCb.fail(new Error('litebits-nofill')); });          // kampanya yok → sıradaki ağ
+  return liteAds;
+}
 function showLiteBits() {
   return new Promise((resolve, reject) => {
     if (!liteReady()) return reject(new Error('litebits-not-ready'));
-    let done = false;
-    const finish = (fn, v) => { if (done) return; done = true; clearTimeout(t); fn(v); };
+    let done = false, grace = null;
     const t = setTimeout(() => finish(reject, new Error('litebits-timeout')), AD_TIMEOUT_MS);
+    const finish = (fn, v) => { if (done) return; done = true; clearTimeout(t); clearTimeout(grace); liteCb = null; fn(v); };
+    liteCb = { ok: () => finish(resolve), fail: err => finish(reject, err) };
     try {
-      if (!liteAds) {
-        liteAds = new window.LiteBitsAds({ apiKey: LITEBITS_API_KEY, placementId: LITEBITS_PLACEMENT_ID, baseUrl: 'https://ads.litebits.io', sandbox: LITEBITS_SANDBOX });
-      }
-      liteAds.on('rewarded', () => finish(resolve));                       // ödül yalnızca bu olay gelirse verilir
-      liteAds.on('nofill', () => finish(reject, new Error('litebits-nofill')));
-      Promise.resolve(liteAds.show()).catch(err => finish(reject, err));
+      // show() bitince 'rewarded' olayı için kısa süre beklenir; gelmezse (reklam kapatıldı) ödül verilmez.
+      Promise.resolve(liteInit().show())
+        .then(() => { grace = setTimeout(() => finish(reject, new Error('litebits-no-reward')), 8000); })
+        .catch(err => finish(reject, err));
     } catch (err) { finish(reject, err); }
   });
 }
@@ -410,21 +423,6 @@ $('#gQuit').onclick = () => {
 document.querySelectorAll('[data-play]').forEach(b => b.onclick = () => startGame(b.dataset.play));
 window.addEventListener('resize', () => { if (cur) fitCanvas(); });
 
-/* ---------- Oyuncu sayısı (gerçek: Supabase players tablosu) ---------- */
-let userCount = Number(localStorage.getItem('wrgp_usercount')) || 0;
-function renderUserCount() {
-  const el = $('#userCount'); if (!el) return;
-  if (userCount > 0) { el.innerHTML = tl('players_count', { n: fmt(userCount) }); el.classList.add('show'); }
-}
-async function loadUserCount() {
-  try {
-    const r = await fetch(`${SB_URL}/rest/v1/${SB_TABLE}?select=tg_id`, { headers: Object.assign({ Prefer: 'count=exact', Range: '0-0' }, SB_HEAD) });
-    const m = /\/(\d+)$/.exec(r.headers.get('Content-Range') || '');
-    if (m) { userCount = Number(m[1]); try { localStorage.setItem('wrgp_usercount', String(userCount)); } catch (_) {} renderUserCount(); }
-  } catch (_) {}
-}
-setInterval(loadUserCount, 300000);
-
 /* ---------- Dil seçici ---------- */
 (function () {
   const sel = $('#langSel');
@@ -432,11 +430,11 @@ setInterval(loadUserCount, 300000);
   sel.value = LANG;
   sel.onchange = () => {
     setLang(sel.value);
-    render(); renderInvites(); renderUserCount();
+    render(); renderInvites();
     if ($('#tab-board').classList.contains('active')) renderBoard();
     haptic('light');
   };
   applyI18n();
-  render(); renderInvites(); renderUserCount();
-  loadRemote(); loadUserCount();
+  render(); renderInvites();
+  loadRemote();
 })();
