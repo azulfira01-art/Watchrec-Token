@@ -8,7 +8,7 @@ I18N.en = {
   m3_meta: "Best: <b id='bestM3'>0</b> pts · Reward: up to 8 WRGP",
   vf_title: '📐 Volfied (Area Capture)',
   vf_desc: '10 space levels, each with creatures and a boss. Draw lines to claim territory; any creature trapped in a small area dies. Claim 70% of the map in 60 seconds!',
-  vf_meta: "Best: <b id='bestVF'>0</b> pts · Reward: 5 WRGP per level, +50 for finishing all 10",
+  vf_meta: "Best: <b id='bestVF'>0</b> pts · Reward: 5 WRGP per level (8 if all creatures are cleared), +50 for finishing all 10",
   play: 'PLAY · 1 ❤️',
   ad_life: '📺 Watch Ad (+1 Life)',
   life_full: 'Lives full ✅', life_next: 'Next life: {m} min {s} sec',
@@ -34,7 +34,8 @@ I18N.en = {
   goal: 'Claim 70% of the area in 60 seconds', level_done: 'LEVEL COMPLETE!', time_bonus: 'Time bonus +{b} · +1 ❤️', next: 'Next: {n}',
   vf_win: '🏆 All Levels Complete!', lives_out: 'Out of Lives!',
   vf_l1: 'Levels completed: <b>{c}/{n}</b>', vf_l2: 'Final area: <b>{p}%</b>', vf_l3: 'Score: <b>{s}</b>',
-  vf_l4: 'Reward: {r} WRGP (5 per level{f})', vf_final: ' + 50 final bonus',
+  vf_l4: 'Reward: {r} WRGP (5–8 per level{f})', vf_final: ' + 50 final bonus',
+  lvl_reward: 'Level reward +{r} WRGP', lvl_perfect: 'ALL CREATURES CLEARED · 100% · +{r} WRGP', lb_step: 'Ad 1/2 watched — one more ad for +1 Life',
   vf_hint: 'Swipe (or arrow keys) • draw a line from the edge into open space • creatures trapped in a small area die • 60 sec per level'
 };
 I18N.tr = {
@@ -44,7 +45,7 @@ I18N.tr = {
   m3_meta: "Rekor: <b id='bestM3'>0</b> puan · Ödül: en fazla 8 WRGP",
   vf_title: '📐 Volfied (Çizmeci)',
   vf_desc: "10 uzay bölümü, her bölümde yaratıklar ve bir canavar. Çizgi çekip alanı kapat; küçük alanda sıkışan yaratık ölür. 60 saniyede haritanın %70'ini kapat!",
-  vf_meta: "Rekor: <b id='bestVF'>0</b> puan · Ödül: bölüm başı 5 WRGP, 10 bölüm bitince +50",
+  vf_meta: "Rekor: <b id='bestVF'>0</b> puan · Ödül: bölüm başı 5 WRGP (tüm yaratıklar temizlenirse 8), 10 bölüm bitince +50",
   play: 'OYNA · 1 ❤️',
   ad_life: '📺 Reklam İzle (+1 Can)',
   life_full: 'Canların dolu ✅', life_next: 'Sonraki can: {m} dk {s} sn',
@@ -70,7 +71,8 @@ I18N.tr = {
   goal: '60 saniyede %70 alanı kapat', level_done: 'BÖLÜM TAMAM!', time_bonus: 'Süre bonusu +{b} · +1 ❤️', next: 'Sıradaki: {n}',
   vf_win: '🏆 Tüm Bölümler Tamam!', lives_out: 'Canların Bitti!',
   vf_l1: 'Tamamlanan bölüm: <b>{c}/{n}</b>', vf_l2: 'Son alan: <b>%{p}</b>', vf_l3: 'Skor: <b>{s}</b>',
-  vf_l4: 'Ödül: {r} WRGP (bölüm başı 5{f})', vf_final: ' + 50 final bonusu',
+  vf_l4: 'Ödül: {r} WRGP (bölüm başı 5–8{f})', vf_final: ' + 50 final bonusu',
+  lvl_reward: 'Bölüm ödülü +{r} WRGP', lvl_perfect: 'TÜM YARATIKLAR TEMİZLENDİ · %100 · +{r} WRGP', lb_step: '1/2 reklam izlendi — +1 Can için bir reklam daha',
   vf_hint: 'Parmağını kaydır (veya ok tuşları) • Kenardan boşluğa çizgi çek • Küçük alanda sıkışan yaratık ölür • Her bölüm 60 sn'
 };
 I18N.ru = {
@@ -80,7 +82,7 @@ I18N.ru = {
   m3_meta: "Рекорд: <b id='bestM3'>0</b> очк. · Награда: до 8 WRGP",
   vf_title: '📐 Volfied (Захват территории)',
   vf_desc: '10 космических уровней, в каждом — существа и босс. Проводи линии и захватывай территорию; существо, запертое в небольшой области, погибает. Захвати 70% карты за 60 секунд!',
-  vf_meta: "Рекорд: <b id='bestVF'>0</b> очк. · Награда: 5 WRGP за уровень, +50 за все 10",
+  vf_meta: "Рекорд: <b id='bestVF'>0</b> очк. · Награда: 5 WRGP за уровень (8, если все существа уничтожены), +50 за все 10",
   play: 'ИГРАТЬ · 1 ❤️',
   ad_life: '📺 Смотреть рекламу (+1 жизнь)',
   life_full: 'Жизни полны ✅', life_next: 'Следующая жизнь: {m} мин {s} сек',
@@ -106,7 +108,8 @@ I18N.ru = {
   goal: 'Захвати 70% территории за 60 секунд', level_done: 'УРОВЕНЬ ПРОЙДЕН!', time_bonus: 'Бонус за время +{b} · +1 ❤️', next: 'Далее: {n}',
   vf_win: '🏆 Все уровни пройдены!', lives_out: 'Жизни закончились!',
   vf_l1: 'Пройдено уровней: <b>{c}/{n}</b>', vf_l2: 'Итоговая площадь: <b>{p}%</b>', vf_l3: 'Очки: <b>{s}</b>',
-  vf_l4: 'Награда: {r} WRGP (5 за уровень{f})', vf_final: ' + 50 финальный бонус',
+  vf_l4: 'Награда: {r} WRGP (5–8 за уровень{f})', vf_final: ' + 50 финальный бонус',
+  lvl_reward: 'Награда за уровень +{r} WRGP', lvl_perfect: 'ВСЕ СУЩЕСТВА УНИЧТОЖЕНЫ · 100% · +{r} WRGP', lb_step: 'Просмотрено 1/2 — ещё одна реклама за +1 жизнь',
   vf_hint: 'Свайп (или стрелки) • проведи линию от края в свободное место • существа в небольшой области погибают • 60 сек на уровень'
 };
 I18N.zh = {
@@ -116,7 +119,7 @@ I18N.zh = {
   m3_meta: "最高分：<b id='bestM3'>0</b> · 奖励：最多 8 WRGP",
   vf_title: '📐 Volfied（圈地）',
   vf_desc: '10个太空关卡，每关都有怪物和一只首领。画线圈地；被困在小区域内的怪物会死亡。在60秒内圈占地图的70%！',
-  vf_meta: "最高分：<b id='bestVF'>0</b> · 奖励：每关 5 WRGP，通关全部10关再 +50",
+  vf_meta: "最高分：<b id='bestVF'>0</b> · 奖励：每关 5 WRGP（消灭所有怪物为 8），通关全部10关再 +50",
   play: '开始 · 1 ❤️',
   ad_life: '📺 观看广告（+1 生命）',
   life_full: '生命已满 ✅', life_next: '下一条生命：{m}分{s}秒',
@@ -142,7 +145,8 @@ I18N.zh = {
   goal: '60秒内圈占70%的区域', level_done: '过关！', time_bonus: '时间奖励 +{b} · +1 ❤️', next: '下一关：{n}',
   vf_win: '🏆 全部通关！', lives_out: '生命用完了！',
   vf_l1: '已通关：<b>{c}/{n}</b>', vf_l2: '最终面积：<b>{p}%</b>', vf_l3: '得分：<b>{s}</b>',
-  vf_l4: '奖励：{r} WRGP（每关 5{f}）', vf_final: ' + 50 通关奖励',
+  vf_l4: '奖励：{r} WRGP（每关 5–8{f}）', vf_final: ' + 50 通关奖励',
+  lvl_reward: '关卡奖励 +{r} WRGP', lvl_perfect: '怪物全部消灭 · 100% · +{r} WRGP', lb_step: '已观看 1/2 — 再看一条广告可得 +1 生命',
   vf_hint: '滑动屏幕（或方向键） • 从边缘向空地画线 • 被困在小区域的怪物会死亡 • 每关 60 秒'
 };
 I18N.ko = {
@@ -152,7 +156,7 @@ I18N.ko = {
   m3_meta: "최고 기록: <b id='bestM3'>0</b>점 · 보상: 최대 8 WRGP",
   vf_title: '📐 Volfied (땅따먹기)',
   vf_desc: '10개의 우주 스테이지, 각 스테이지마다 크리처와 보스가 있습니다. 선을 그어 영역을 차지하세요. 좁은 영역에 갇힌 크리처는 죽습니다. 60초 안에 맵의 70%를 차지하세요!',
-  vf_meta: "최고 기록: <b id='bestVF'>0</b>점 · 보상: 스테이지당 5 WRGP, 10개 모두 클리어 시 +50",
+  vf_meta: "최고 기록: <b id='bestVF'>0</b>점 · 보상: 스테이지당 5 WRGP (모든 크리처 처치 시 8), 10개 모두 클리어 시 +50",
   play: '플레이 · 1 ❤️',
   ad_life: '📺 광고 보기 (+1 생명)',
   life_full: '생명이 가득 찼습니다 ✅', life_next: '다음 생명: {m}분 {s}초',
@@ -178,7 +182,8 @@ I18N.ko = {
   goal: '60초 안에 영역의 70% 차지하기', level_done: '스테이지 클리어!', time_bonus: '시간 보너스 +{b} · +1 ❤️', next: '다음: {n}',
   vf_win: '🏆 모든 스테이지 클리어!', lives_out: '생명이 모두 소진되었습니다!',
   vf_l1: '클리어한 스테이지: <b>{c}/{n}</b>', vf_l2: '최종 면적: <b>{p}%</b>', vf_l3: '점수: <b>{s}</b>',
-  vf_l4: '보상: {r} WRGP (스테이지당 5{f})', vf_final: ' + 50 최종 보너스',
+  vf_l4: '보상: {r} WRGP (스테이지당 5–8{f})', vf_final: ' + 50 최종 보너스',
+  lvl_reward: '스테이지 보상 +{r} WRGP', lvl_perfect: '모든 크리처 처치 · 100% · +{r} WRGP', lb_step: '광고 1/2 시청 — 하나 더 보면 +1 생명',
   vf_hint: '스와이프 (또는 방향키) • 가장자리에서 빈 공간으로 선 긋기 • 좁은 영역에 갇힌 크리처는 죽음 • 스테이지당 60초'
 };
 I18N.es = {
@@ -188,7 +193,7 @@ I18N.es = {
   m3_meta: "Récord: <b id='bestM3'>0</b> pts · Premio: hasta 8 WRGP",
   vf_title: '📐 Volfied (Captura de área)',
   vf_desc: '10 niveles espaciales, cada uno con criaturas y un jefe. Traza líneas para conquistar territorio; la criatura atrapada en un área pequeña muere. ¡Conquista el 70 % del mapa en 60 segundos!',
-  vf_meta: "Récord: <b id='bestVF'>0</b> pts · Premio: 5 WRGP por nivel, +50 al completar los 10",
+  vf_meta: "Récord: <b id='bestVF'>0</b> pts · Premio: 5 WRGP por nivel (8 si eliminas todas las criaturas), +50 al completar los 10",
   play: 'JUGAR · 1 ❤️',
   ad_life: '📺 Ver anuncio (+1 vida)',
   life_full: 'Vidas completas ✅', life_next: 'Próxima vida: {m} min {s} s',
@@ -214,7 +219,8 @@ I18N.es = {
   goal: 'Conquista el 70 % del área en 60 segundos', level_done: '¡NIVEL COMPLETADO!', time_bonus: 'Bonus de tiempo +{b} · +1 ❤️', next: 'Siguiente: {n}',
   vf_win: '🏆 ¡Todos los niveles completados!', lives_out: '¡Sin vidas!',
   vf_l1: 'Niveles completados: <b>{c}/{n}</b>', vf_l2: 'Área final: <b>{p}%</b>', vf_l3: 'Puntos: <b>{s}</b>',
-  vf_l4: 'Premio: {r} WRGP (5 por nivel{f})', vf_final: ' + 50 de bonus final',
+  vf_l4: 'Premio: {r} WRGP (5–8 por nivel{f})', vf_final: ' + 50 de bonus final',
+  lvl_reward: 'Premio del nivel +{r} WRGP', lvl_perfect: 'TODAS LAS CRIATURAS ELIMINADAS · 100 % · +{r} WRGP', lb_step: 'Anuncio 1/2 visto: otro más para +1 vida',
   vf_hint: 'Desliza (o usa las flechas) • traza una línea desde el borde hacia el espacio libre • las criaturas atrapadas en un área pequeña mueren • 60 s por nivel'
 };
 const LVN_DATA = {

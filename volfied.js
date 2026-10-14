@@ -1,7 +1,7 @@
 /* Volfied – 10 bölümlü uzay macerası (Canvas) */
 const Volfied = (() => {
   const GW = 40, GH = 56, CS = 12, W = GW * CS, H = GH * CS;
-  const TARGET = 0.7, STEP = 1000 / 60, TIME = 60000, MAXL = 3, NL = 10, TAU = 6.2832;
+  const TARGET = 0.7, FULL = 0.99, R_STD = 5, R_FULL = 8, STEP = 1000 / 60, TIME = 60000, MAXL = 3, NL = 10, TAU = 6.2832;
   const COL = { bounce: '#ff2d6f', wander: '#ffa726', snake: '#7cff4d', chase: '#ff5252', dash: '#c06bff', teleport: '#4df0ff' };
 
   /* ---------- 10 BÖLÜM TANIMI ---------- */
@@ -165,7 +165,7 @@ const Volfied = (() => {
     const lc = layer.getContext('2d');
     let L, li = 0, bg, dimBg, tw = [];
     let lives = MAXL, score = 0, pct = 0, cleared = 0, dir = null, trail = [], tstart = [0, 0], tick = 0;
-    let alive = true, state = 'intro', stT = 0, timeLeft = TIME, acc = 0, last = 0, shake = 0, raf = 0, dirty = true, lastSec = -1, bonus = 0;
+    let alive = true, state = 'intro', stT = 0, timeLeft = TIME, acc = 0, last = 0, shake = 0, raf = 0, dirty = true, lastSec = -1, bonus = 0, earned = 0, perfect = false, lvlReward = 0;
     const player = { x: GW >> 1, y: GH - 1 };
     let creatures = [];
     const parts = [], texts = [];
@@ -214,7 +214,7 @@ const Volfied = (() => {
       g.fill(0); fresh.fill(0);
       for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) if (x === 0 || y === 0 || x === GW - 1 || y === GH - 1) g[y * GW + x] = 1;
       trail = []; dir = null; player.x = GW >> 1; player.y = GH - 1; tstart = [player.x, player.y];
-      pct = 0; timeLeft = TIME; parts.length = 0; texts.length = 0; lastSec = -1;
+      pct = 0; perfect = false; lvlReward = 0; timeLeft = TIME; parts.length = 0; texts.length = 0; lastSec = -1;
       creatures = []; creatures.push(mk(L.bt, true)); for (const t of L.cr) creatures.push(mk(t, false));
       tw = []; for (let k = 0; k < 40; k++) tw.push({ x: Math.random() * W, y: Math.random() * H, p: Math.random() * 6, s: Math.random() < .2 ? 2 : 1 });
       dirty = true; state = 'intro'; stT = 2300; hud();
@@ -280,6 +280,15 @@ const Volfied = (() => {
         floatText(e.x * CS, e.y * CS, e.boss ? tl('boss_killed') : tl('killed'), e.boss ? '#ff5a6e' : '#ffffff');
         shake = Math.max(shake, e.boss ? 24 : 12); hp(e.boss ? 'heavy' : 'medium');
         creatures.splice(k, 1);
+      }
+      // %100 kuralı: harita %70 dolmadan tüm yaratıklar/canavar yok olduysa ya da alan zaten (neredeyse) tamamen kapandıysa
+      // kalan boşluk da doldurulur, bölüm %100 kapatılmış sayılır ve 8 WRGP verilir.
+      if (creatures.length === 0 || pct >= FULL) {
+        perfect = true;
+        let add = 0;
+        for (let y = 1; y < GH - 1; y++) for (let x = 1; x < GW - 1; x++) { const i = y * GW + x; if (g[i] !== 1) { g[i] = 1; fresh[i] = 255; add++; } }
+        pct = 1; score += add * 5;
+        floatText(W / 2, H / 2, '100%', '#ffd700');
       }
       dirty = true; hp('light'); hud();
       if (pct >= TARGET) levelWin();
@@ -363,6 +372,7 @@ const Volfied = (() => {
     function levelWin() {
       if (state !== 'play') return;
       cleared++;
+      lvlReward = perfect ? R_FULL : R_STD; earned += lvlReward;   // normal 5 WRGP, %100 ise 8 WRGP
       bonus = Math.ceil(timeLeft / 1000) * 10;
       score += bonus;
       lives = Math.min(MAXL, lives + 1);
@@ -373,7 +383,7 @@ const Volfied = (() => {
     function finish(win, why) {
       if (!alive || state === 'over') return;
       state = 'over'; dir = null;
-      const reward = cleared * 5 + (cleared >= NL ? 50 : 0);   // bölüm başı 5 WRGP, 10 bölüm bitince +50
+      const reward = earned + (cleared >= NL ? 50 : 0);   // bölüm başı 5 (ya da %100 ise 8) WRGP, 10 bölüm bitince +50
       const title = win ? tl('vf_win') : (why === 'time' ? tl('time_up') : tl('lives_out'));
       ui.end({ kind: 'vf', score, reward, win, title,
         lines: [tl('vf_l1', { c: cleared, n: NL }), tl('vf_l2', { p: Math.round(pct * 100) }), tl('vf_l3', { s: score }),
@@ -505,9 +515,10 @@ const Volfied = (() => {
           ctx.font = '15px sans-serif'; ctx.fillStyle = '#ff6a7e'; ctx.fillText(tl('boss_lbl', { n: LVN(li)[1] }), W / 2, H * .3 + 128);
           ctx.fillStyle = '#cfe'; ctx.fillText(tl('goal'), W / 2, H * .3 + 158);
         } else {
-          ctx.font = 'bold 30px sans-serif'; ctx.fillStyle = '#00e676'; ctx.fillText(tl('level_done'), W / 2, H * .3 + 62);
-          ctx.font = '16px sans-serif'; ctx.fillStyle = '#fff'; ctx.fillText(tl('time_bonus', { b: bonus }), W / 2, H * .3 + 110);
-          ctx.fillStyle = '#cfe'; ctx.fillText(tl('next', { n: LVN(li + 1)[0] }), W / 2, H * .3 + 148);
+          ctx.font = 'bold 30px sans-serif'; ctx.fillStyle = '#00e676'; ctx.fillText(tl('level_done'), W / 2, H * .3 + 46);
+          ctx.font = 'bold 16px sans-serif'; ctx.fillStyle = '#ffd700'; ctx.fillText(tl(perfect ? 'lvl_perfect' : 'lvl_reward', { r: lvlReward }), W / 2, H * .3 + 82);
+          ctx.font = '16px sans-serif'; ctx.fillStyle = '#fff'; ctx.fillText(tl('time_bonus', { b: bonus }), W / 2, H * .3 + 116);
+          ctx.fillStyle = '#cfe'; ctx.fillText(tl('next', { n: LVN(li + 1)[0] }), W / 2, H * .3 + 150);
         }
         ctx.shadowBlur = 0;
       }

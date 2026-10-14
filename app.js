@@ -80,6 +80,9 @@ function mergeRemote(row) {
   M.refDone = !!(L.refDone || R.refDone);
   M.refPaid = Array.from(new Set([].concat(L.refPaid || [], R.refPaid || []).map(Number)));   // ödülü verilen davetler: birleşim
   if (!M.referrer) M.referrer = L.referrer || R.referrer;
+  const ll = L.lb || {}, rl = R.lb || {};                           // LiteBits günlük sayaç: aynı günse yüksek olan, değilse yeni gün
+  const lbPick = ll.d === rl.d ? ((ll.n || 0) >= (rl.n || 0) ? ll : rl) : ((ll.d || '') > (rl.d || '') ? ll : rl);
+  if (lbPick && lbPick.d) M.lb = lbPick;
   M.lives = Math.min(MAX_LIVES, Math.max(0, Math.floor(Number(M.lives) || 0)));
   M.upd = Math.max(Number(L.upd) || 0, Number(rs.upd) || 0, 1);
   S = M; saveLocalOnly();
@@ -312,37 +315,44 @@ function showMonetag() {
     Promise.resolve(fn()).then(() => { clearTimeout(t); resolve(); }).catch(err => { clearTimeout(t); reject(err); });
   });
 }
-/* B) TADS ödüllü reklam – Widget 12600
-   SDK'nın hangi küresel nesneyi açtığı belgeden doğrulanamadı; bu yüzden bilinen iki biçim de denenir
-   ve hangisinin bulunduğu konsola yazılır. */
-function tadsGlobal() { return window.TADS || window.tads || window.Tads || null; }
-const tadsReady = () => { const g = tadsGlobal(); return !!g && (typeof g.show === 'function' || typeof g.init === 'function'); };
+/* B) TADS ödüllü reklam – Fullscreen Banner, Widget 12600 (SDK: https://w.tads.me/widget.js)
+   Denetleyici bir kez oluşturulur; geri çağrılar o anki reklam isteğine yönlendirilir. */
+let tadsCtrl = null, tadsCb = null;
+const tadsReady = () => !!(window.tads && typeof window.tads.init === 'function');
+function tadsInit() {
+  if (tadsCtrl) return tadsCtrl;
+  tadsCtrl = window.tads.init({
+    widgetId: TADS_WIDGET_ID,
+    type: 'fullscreen',
+    debug: false,
+    onShowReward: () => { if (tadsCb) tadsCb.ok(); },                                   // ödül yalnızca bu olay gelirse verilir
+    onAdsNotFound: () => { if (tadsCb) tadsCb.fail(new Error('tads-nofill')); }         // reklam yok → sıradaki ağ
+  });
+  return tadsCtrl;
+}
 function showTads() {
   return new Promise((resolve, reject) => {
-    const g = tadsGlobal();
-    if (!g) return reject(new Error('tads-sdk-missing'));
+    if (!tadsReady()) return reject(new Error('tads-sdk-missing'));
     let done = false;
-    const finish = (fn, v) => { if (done) return; done = true; clearTimeout(t); fn(v); };
+    const finish = (fn, v) => { if (done) return; done = true; clearTimeout(t); tadsCb = null; fn(v); };
     const t = setTimeout(() => finish(reject, new Error('tads-timeout')), AD_TIMEOUT_MS);
+    tadsCb = { ok: () => finish(resolve), fail: err => finish(reject, err) };
     try {
-      if (typeof g.show === 'function') {
-        g.show({ widgetId: TADS_WIDGET_ID, onSuccess: () => finish(resolve), onError: err => finish(reject, err || new Error('tads-error')) });
-      } else if (typeof g.init === 'function') {
-        const ctrl = g.init({
-          widgetId: TADS_WIDGET_ID, type: 'video',
-          onShowReward: () => finish(resolve),
-          onAdsNotFound: () => finish(reject, new Error('tads-nofill'))
-        });
-        if (!ctrl || typeof ctrl.loadAd !== 'function') return finish(reject, new Error('tads-bad-controller'));
-        Promise.resolve(ctrl.loadAd()).then(ad => { if (typeof ad === 'function') ad(); else if (ctrl.showAd) ctrl.showAd(); })
-          .catch(err => finish(reject, err));
-      } else finish(reject, new Error('tads-unknown-api'));
+      const ctrl = tadsInit();
+      if (!ctrl || typeof ctrl.showAd !== 'function') return finish(reject, new Error('tads-bad-controller'));
+      Promise.resolve(ctrl.showAd()).catch(err => finish(reject, err));
     } catch (err) { finish(reject, err); }
   });
 }
 /* C) LiteBits ödüllü reklam */
 let liteAds = null, liteCb = null;
 const liteReady = () => !!LITEBITS_PLACEMENT_ID && typeof window.LiteBitsAds === 'function';
+/* LiteBits kuralı: ARKA ARKAYA 2 reklam = +1 can. Günde en fazla 20 gösterim (= 10 can). Sayaç UTC gününe göre sıfırlanır.
+   S.lb = { d: gün, n: bugünkü gösterim, p: 1 ise ilk reklam izlendi, ikincisi bekleniyor } */
+const LB_DAILY_ADS = 20;
+const utcDay = () => new Date().toISOString().slice(0, 10);
+function lbState() { if (!S.lb || S.lb.d !== utcDay()) S.lb = { d: utcDay(), n: 0, p: 0 }; return S.lb; }
+const liteQuotaLeft = () => LB_DAILY_ADS - lbState().n;
 function liteInit() {
   if (liteAds) return liteAds;
   liteAds = new window.LiteBitsAds({ apiKey: LITEBITS_API_KEY, placementId: LITEBITS_PLACEMENT_ID, baseUrl: 'https://ads.litebits.io' });
@@ -365,11 +375,24 @@ function showLiteBits() {
     } catch (err) { finish(reject, err); }
   });
 }
+/* LiteBits: iki reklam art arda gösterilir; yalnızca ikisi de tamamlanırsa resolve olur (= +1 can). */
+async function showLiteBitsPair() {
+  if (liteQuotaLeft() <= 0) throw new Error('litebits-daily-limit');
+  if (lbState().p === 0) {
+    await showLiteBits();
+    const lb = lbState(); lb.n++; lb.p = 1; save();                 // 1/2 tamam; ikincisi yarım kalırsa bir sonraki LiteBits reklamı tamamlar
+    if (liteQuotaLeft() <= 0) throw new Error('litebits-daily-limit');
+    toast(tl('lb_step'));
+    await new Promise(r => setTimeout(r, 1500));
+  }
+  await showLiteBits();
+  const lb2 = lbState(); lb2.n++; lb2.p = 0; save();               // 2/2 tamam → can verilir
+}
 /* Reklam ağları: her seferinde rastgele sırayla denenir; ilk başarılı olan ödül verir (tek sefer). */
 const AD_NETWORKS = [
   { name: 'Monetag', ok: () => typeof window[MONETAG_FN] === 'function', show: showMonetag },
   { name: 'TADS', ok: tadsReady, show: showTads },
-  { name: 'LiteBits', ok: liteReady, show: showLiteBits }
+  { name: 'LiteBits', ok: () => liteReady() && liteQuotaLeft() > 0, show: showLiteBitsPair }
 ];
 function shuffle(arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 async function watchAd(onDone) {
@@ -460,6 +483,5 @@ window.addEventListener('resize', () => { if (cur) fitCanvas(); });
 
 /* Tanı: TADS SDK yüklendi mi? (Konsolda görülür) */
 window.addEventListener('load', () => setTimeout(() => {
-  const g = tadsGlobal();
-  console.log('TADS SDK:', g ? ('bulundu, alanlar: ' + Object.keys(g).join(', ')) : 'BULUNAMADI (script yüklenmedi ya da farklı bir ad kullanıyor)');
+  console.log('TADS SDK:', tadsReady() ? 'hazır (window.tads.init var)' : 'BULUNAMADI (w.tads.me/widget.js yüklenmedi)');
 }, 2000));
