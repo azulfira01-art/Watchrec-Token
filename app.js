@@ -267,13 +267,20 @@ async function refreshInvites() {
 }
 
 /* ---------- Liderlik (Supabase) ---------- */
+/* Sıralamada isim gizleme: ilk 2 karakter görünür, kalanı * (en fazla 8 yıldız) */
+function maskName(n) {
+  const c = Array.from(String(n || '').trim());
+  if (!c.length) return '—';
+  if (c.length <= 2) return c.join('');
+  return c.slice(0, 2).join('') + '*'.repeat(Math.min(c.length - 2, 8));
+}
 let boardSeq = 0;
 async function renderBoard() {
   const el = $('#boardList'), seq = ++boardSeq;
   el.innerHTML = '<p class="muted">' + tl('board_loading') + '</p>';
   try {
     await syncScore();
-    const r = await fetch(`${SB_URL}/rest/v1/${SB_TABLE}?select=tg_id,name,wrgp&order=wrgp.desc&limit=200`, { headers: SB_HEAD });
+    const r = await fetch(`${SB_URL}/rest/v1/${SB_TABLE}?select=tg_id,name,wrgp&order=wrgp.desc&limit=100`, { headers: SB_HEAD });
     if (!r.ok) throw new Error('http ' + r.status);
     const rows = await r.json();
     let myRank = 0;
@@ -287,7 +294,7 @@ async function renderBoard() {
     }
     if (seq !== boardSeq) return;
     const medal = ['🥇', '🥈', '🥉'];
-    const row = (rk, name, sc, me) => `<div class="lb ${me ? 'me' : ''}"><span class="rk">${rk}</span><span class="nm">${esc(name)}${me ? ' ' + tl('you') : ''}</span><span class="sc">${fmt(sc)}</span></div>`;
+    const row = (rk, name, sc, me) => `<div class="lb ${me ? 'me' : ''}"><span class="rk">${rk}</span><span class="nm">${esc(maskName(name))}${me ? ' ' + tl('you') : ''}</span><span class="sc">${fmt(sc)}</span></div>`;
     let html = rows.length ? rows.map((p, i) => row(medal[i] || (i + 1), p.name || '—', p.wrgp, String(p.tg_id) === String(USER_ID))).join('') : '<p class="muted">' + tl('board_empty') + '</p>';
     if (myRank) html += '<div class="muted" style="text-align:center">…</div>' + row(myRank, getName(), S.wrgp, true);
     el.innerHTML = html + '<p class="muted" style="margin-top:10px">' + tl('board_note') + '</p>';
@@ -344,6 +351,17 @@ function showTads() {
     } catch (err) { finish(reject, err); }
   });
 }
+/* TADS kuralı: ARKA ARKAYA 2 reklam = +1 can (reklamlar 8 sn). S.tp = 1 ise ilk reklam izlendi, ikincisi bekleniyor. */
+async function showTadsPair() {
+  if (!S.tp) {
+    await showTads();
+    S.tp = 1; save();                                               // 1/2 tamam; ikincisi yarım kalırsa bir sonraki TADS reklamı tamamlar
+    toast(tl('lb_step'));
+    await new Promise(r => setTimeout(r, 1500));
+  }
+  await showTads();
+  S.tp = 0; save();                                                 // 2/2 tamam → can verilir
+}
 /* C) LiteBits ödüllü reklam */
 let liteAds = null, liteCb = null;
 const liteReady = () => !!LITEBITS_PLACEMENT_ID && typeof window.LiteBitsAds === 'function';
@@ -391,7 +409,7 @@ async function showLiteBitsPair() {
 /* Reklam ağları: her seferinde rastgele sırayla denenir; ilk başarılı olan ödül verir (tek sefer). */
 const AD_NETWORKS = [
   { name: 'Monetag', ok: () => typeof window[MONETAG_FN] === 'function', show: showMonetag },
-  { name: 'TADS', ok: tadsReady, show: showTads },
+  { name: 'TADS', ok: tadsReady, show: showTadsPair },
   { name: 'LiteBits', ok: () => liteReady() && liteQuotaLeft() > 0, show: showLiteBitsPair }
 ];
 function shuffle(arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
