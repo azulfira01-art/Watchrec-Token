@@ -413,8 +413,8 @@ const AD_NETWORKS = [
   { name: 'LiteBits', ok: () => liteReady() && liteQuotaLeft() > 0, show: showLiteBitsPair }
 ];
 function shuffle(arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
-async function watchAd(onDone) {
-  if (adBusy) return;
+async function watchAd(onDone, onFail) {
+  if (adBusy) { if (onFail) onFail(); return; }
   adBusy = true;
   let ok = false;
   const list = shuffle(AD_NETWORKS.filter(n => n.ok()));          // yalnızca hazır olan ağlar
@@ -423,7 +423,7 @@ async function watchAd(onDone) {
     catch (err) { console.error(n.name + ' hata:', err); }          // olmadıysa sıradaki ağa geç
   }
   adBusy = false;
-  if (ok) onDone(); else toast(tl('ad_none'));
+  if (ok) onDone(); else { toast(tl('ad_none')); if (onFail) onFail(); }
 }
 /* Buton: can 5'ten azsa aktif → +1 can */
 $('#adBtn').onclick = () => {
@@ -440,6 +440,46 @@ let cur = null;
 const ui = {
   hud: h => { $('#gInfo').innerHTML = h; },
   hint: h => { $('#gHint').textContent = h; },
+  /* Volfied: canlar bitince (5. bölümden itibaren) Devam Et / Bitir. need = izlenecek reklam sayısı (1 veya 2).
+     Devam Et'e 15 sn içinde basılmazsa oyun biter. Basıldıktan sonra geri sayım durur. cb(true) = devam, cb(false) = bitir. */
+  cont: (need, cb) => {
+    let left = 15, seen = 0, busy = false, over = false, timer = null;
+    const done = ok => { if (over) return; over = true; clearInterval(timer); closeModal(); cb(ok); };
+    const paint = (msg) => {
+      const b = $('#contGo'); if (!b) return;
+      b.disabled = busy;
+      b.textContent = busy ? tl('cont_loading') : (left !== null ? tl('cont_btn', { s: left }) : tl('cont_btn0'));
+      $('#contAd').textContent = need > 1 ? tl('cont_ad', { a: Math.min(seen + 1, need), n: need }) : '';
+      $('#contBar').style.width = (left !== null ? left / 15 * 100 : 100) + '%';
+      $('#contNote').textContent = msg || '';
+    };
+    modal(`<h2>${tl('cont_title')}</h2><p>${tl(need > 1 ? 'cont_msg2' : 'cont_msg1')}</p>
+      <div style="height:6px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden;margin:10px 0"><div id="contBar" style="height:100%;width:100%;background:linear-gradient(90deg,#ff3b5c,#00d2ff);transition:width 1s linear"></div></div>
+      <div id="contAd" class="muted"></div><div id="contNote" class="muted" style="color:#ff8a9a"></div>
+      <button class="btn primary" id="contGo"></button><button class="btn" id="contFin">${tl('cont_fin')}</button>`);
+    paint();
+    $('#contFin').onclick = () => done(false);
+    $('#contGo').onclick = async () => {
+      if (busy || over) return;
+      left = null; clearInterval(timer); busy = true; paint();   // basıldı: geri sayım durur
+      let ok = true;
+      while (seen < need) {
+        ok = await new Promise(res => watchAd(() => res(true), () => res(false)));
+        if (over || !cur) return;
+        if (!ok) break;
+        seen++;
+        if (seen < need) toast(tl('cont_ad', { a: seen, n: need }));
+      }
+      busy = false;
+      if (ok && seen >= need) { haptic('medium'); done(true); } else paint(tl('cont_fail'));   // reklam tamamlanmadı: devam hakkı verilmez, tekrar dene ya da bitir
+    };
+    timer = setInterval(() => {
+      if (!cur) { over = true; clearInterval(timer); return; }
+      if (busy || left === null) return;
+      if (--left <= 0) { done(false); return; }                    // süre doldu → oyun biter, ödüller verilir
+      paint();
+    }, 1000);
+  },
   end: r => {
     unlockSwipes();   // oyun bitti: normal kaydırma geri açılır
     if (r.reward > 0) S.wrgp = clampW(S.wrgp + r.reward);

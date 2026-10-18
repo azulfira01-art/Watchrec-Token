@@ -1,7 +1,16 @@
-/* Volfied – 10 bölümlü uzay macerası (Canvas) */
+/* Volfied – 20 bölümlü uzay macerası (Canvas) */
 const Volfied = (() => {
   const GW = 40, GH = 56, CS = 12, W = GW * CS, H = GH * CS;
-  const TARGET = 0.7, FULL = 0.99, R_STD = 5, R_FULL = 8, STEP = 1000 / 60, TIME = 60000, MAXL = 3, NL = 10, TAU = 6.2832;
+  const TARGET = 0.7, FULL = 0.99, R_STD = 5, R_FULL = 8, STEP = 1000 / 60, TIME = 60000, MAXL = 3, NL = 20, TAU = 6.2832;
+  /* ---- 20 BÖLÜM AYARLARI (buradan değiştirilebilir) ---- */
+  const R_HI = 10, R_LAST = 20;            // 11-19. bölüm: 10 WRGP, 20. bölüm: 20 WRGP
+  const FIRST_BONUS = 100, FINAL_BONUS = 300; // 10. bölüm (ilk periyot) bonusu / 20 bölüm bitince ekstra
+  const FIRST_N = 10, CONT_FROM = 4;       // ilk periyot 10 bölüm; Devam Et/Bitir ekranı 5. bölümden (indeks 4) itibaren
+  const CONT_NEED = li => (li >= FIRST_N ? 2 : 1);   // devam için gereken reklam sayısı
+  /* Zorluk: 1-10 normal; 11-19 ≈2 kat (hız x1.4+, tepki x2, bekleme süreleri yarı); 20 ultra */
+  const diffOf = i => i < FIRST_N ? { spd: 1, rate: 1, cd: 1, lead: 0 }
+    : i < NL - 1 ? { spd: 1.4 + (i - FIRST_N) * .025, rate: 2, cd: .5, lead: 0 }
+    : { spd: 1.8, rate: 3, cd: .35, lead: 7 };
   const COL = { bounce: '#ff2d6f', wander: '#ffa726', snake: '#7cff4d', chase: '#ff5252', dash: '#c06bff', teleport: '#4df0ff' };
 
   /* ---------- 10 BÖLÜM TANIMI ---------- */
@@ -27,6 +36,25 @@ const Volfied = (() => {
     { n: 'Kara Delik', boss: 'Olay Ufku Canavarı', bt: 'chase', c1: '#02020a', c2: '#150a22', nc: ['#ff8a3d', '#6a3dff'], neb: 4, st: 420, mw: 1, ac: '#ff9a4d', sp: .165,
       cr: ['chase', 'dash', 'teleport', 'chase', 'snake'], pl: [['bh', .5, .45, 70]] }
   ];
+  /* 11-20: daha parlak arka plan (br:1). Küçük yaratık sayısı: 11-12→6, 13-14→7, 15-16→8, 17-18→9, 19→10, 20→10 (+2 büyük canavar) */
+  const POOL = ['chase', 'dash', 'teleport', 'snake', 'chase', 'bounce', 'dash', 'teleport', 'wander', 'chase'];
+  const HI = [
+    { n: 'Uranüs Buz Fırtınası', boss: 'Buz Titanı', bt: 'chase', c1: '#031a3a', c2: '#0a4a7a', nc: ['#4de1ff', '#7a8cff', '#b0f0ff'], ac: '#7fe9ff', pl: [['ice', .7, .25, 100], ['gas', .2, .78, 60]] },
+    { n: 'Neptün Derinlikleri', boss: 'Üç Dişli Leviathan', bt: 'dash', c1: '#02103a', c2: '#0a2a8a', nc: ['#2e6bff', '#00e0ff', '#7a4dff'], ac: '#4da6ff', pl: [['gas', .3, .3, 110], ['ice', .8, .8, 40]] },
+    { n: 'Plüton Sınırı', boss: 'Donmuş Nöbetçi', bt: 'teleport', c1: '#0a0f24', c2: '#2a3a6a', nc: ['#9ab8ff', '#ff9ad0', '#6affea'], ac: '#bcd0ff', pl: [['ice', .25, .7, 70], ['moon', .75, .22, 50]] },
+    { n: 'Kuiper Kuşağı', boss: 'Kuyruklu Yıldız Hidrası', bt: 'snake', c1: '#0a1030', c2: '#1a3a5a', nc: ['#6affd8', '#4da6ff', '#ff7ad1'], ac: '#8affea', pl: [['rock', .2, .2, 40], ['rock', .8, .35, 50], ['ice', .5, .8, 60], ['rock', .15, .65, 26]] },
+    { n: 'Güneş Patlaması', boss: 'Güneş Anka Kuşu', bt: 'chase', c1: '#2a0800', c2: '#8a2a00', nc: ['#ff6a00', '#ffd000', '#ff2d55'], ac: '#ffb347', pl: [['mars', .75, .3, 120], ['gas', .2, .8, 50]] },
+    { n: 'Pulsar Fırtınası', boss: 'Pulsar Gardiyanı', bt: 'dash', c1: '#08042a', c2: '#2a0a7a', nc: ['#7a5cff', '#00f0ff', '#ff4dff'], ac: '#a58cff', mw: 1, pl: [['alien', .3, .3, 70], ['bh', .8, .75, 38]] },
+    { n: 'Kristal Nebula', boss: 'Prizma Hayaleti', bt: 'teleport', c1: '#14043a', c2: '#4a0a7a', nc: ['#ff5cf0', '#5cffea', '#ffe45c', '#8a5cff'], ac: '#ff9af5', pl: [['alien', .7, .28, 90], ['ice', .2, .72, 60]] },
+    { n: 'Dyson Kalıntıları', boss: 'Makine Efendisi', bt: 'chase', c1: '#041a14', c2: '#0a5a4a', nc: ['#00ffb0', '#ffd000', '#00b0ff'], ac: '#5dffc8', pl: [['ring', .3, .3, 80], ['rock', .8, .7, 44], ['alien', .7, .15, 30]] },
+    { n: 'Kuasar Geçidi', boss: 'Geçit Yutan', bt: 'dash', c1: '#10032a', c2: '#3a0a6a', nc: ['#ff4dd2', '#4d7aff', '#ffb04d', '#4dffea'], ac: '#d28cff', mw: 1, pl: [['bh', .5, .4, 60], ['ring', .15, .85, 40]] },
+    { n: 'Evrenin Kalbi', boss: 'İkiz Boşluklar', bt: 'chase', bt2: 'teleport', c1: '#180018', c2: '#5a0a5a', nc: ['#ff2d95', '#ffd000', '#00e5ff', '#9a4dff', '#00ff95'], ac: '#ff7ad9', mw: 1, pl: [['bh', .3, .3, 80], ['alien', .8, .78, 70], ['ring', .78, .2, 50]] }
+  ];
+  HI.forEach((o, k) => {
+    const n = Math.min(10, 6 + (k >> 1));
+    LV.push(Object.assign({ br: 1, sp: .165, mw: 0, neb: 6, st: 480,
+      cr: Array.from({ length: n }, (_, j) => POOL[(j + k * 3) % POOL.length]) }, o));
+  });
 
   /* ---------- Yardımcılar ---------- */
   const rng = a => () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
@@ -126,9 +154,9 @@ const Volfied = (() => {
     const lg = x.createLinearGradient(0, 0, W * .5, H); lg.addColorStop(0, L.c1); lg.addColorStop(1, L.c2);
     x.fillStyle = lg; x.fillRect(0, 0, W, H);
     x.globalCompositeOperation = 'lighter';
-    for (let i = 0; i < L.neb; i++) {
+    for (let i = 0; i < L.neb + (L.br ? 4 : 0); i++) {
       const nx = R() * W, ny = R() * H, nr = 90 + R() * 170, col = L.nc[i % L.nc.length];
-      const rg = x.createRadialGradient(nx, ny, 0, nx, ny, nr); rg.addColorStop(0, col + '66'); rg.addColorStop(1, col + '00');
+      const rg = x.createRadialGradient(nx, ny, 0, nx, ny, nr); rg.addColorStop(0, col + (L.br ? 'a0' : '66')); rg.addColorStop(1, col + '00');
       x.fillStyle = rg; x.fillRect(nx - nr, ny - nr, nr * 2, nr * 2);
     }
     if (L.mw) {
@@ -139,14 +167,37 @@ const Volfied = (() => {
       for (let i = 0; i < 900; i++) { x.fillStyle = 'rgba(255,255,255,' + (R() * .6) + ')'; x.fillRect((R() - .5) * H * 1.6, (R() + R() + R() - 1.5) * 70, 1.3, 1.3); }
       x.restore();
     }
+    if (L.br) {   // aurora şeritleri
+      for (let b = 0; b < 3; b++) {
+        const col = L.nc[b % L.nc.length], y0 = H * (.12 + R() * .6), amp = 30 + R() * 50, fr = .008 + R() * .01, ph = R() * 6;
+        for (let k = 0; k < 6; k++) {
+          x.strokeStyle = col + '1c'; x.lineWidth = 64 - k * 10; x.lineCap = 'round'; x.beginPath();
+          for (let px = -10; px <= W + 10; px += 12) { const py = y0 + Math.sin(px * fr + ph) * amp + Math.sin(px * fr * 2.3 + ph) * amp * .4; if (px < 0) x.moveTo(px, py); else x.lineTo(px, py); }
+          x.stroke();
+        }
+      }
+    }
     x.globalCompositeOperation = 'source-over';
-    for (let i = 0; i < L.st; i++) {
-      const s = R(); x.globalAlpha = .25 + R() * .75;
-      x.fillStyle = s < .1 ? '#bfe6ff' : (s < .2 ? '#ffe9b0' : '#ffffff');
-      const sz = R() < .08 ? 2.2 : 1.2;
+    const SC = L.br ? ['#bfe6ff', '#ffe9b0', '#ffc2f0', '#b8ffd8', '#ffffff', '#ffffff'] : null;
+    const NS = L.br ? Math.round(L.st * 2.4) : L.st;
+    for (let i = 0; i < NS; i++) {
+      const s = R(); x.globalAlpha = (L.br ? .4 : .25) + R() * (L.br ? .6 : .75);
+      x.fillStyle = SC ? SC[(R() * SC.length) | 0] : (s < .1 ? '#bfe6ff' : (s < .2 ? '#ffe9b0' : '#ffffff'));
+      const sz = R() < (L.br ? .14 : .08) ? 2.2 : (L.br ? 1.5 : 1.2);
       x.fillRect(R() * W, R() * H, sz, sz);
     }
     x.globalAlpha = 1;
+    if (L.br) {   // parlayan ışıltılı yıldızlar
+      x.globalCompositeOperation = 'lighter';
+      for (let i = 0; i < 46; i++) {
+        const sx = R() * W, sy = R() * H, sr = 5 + R() * 11, col = SC[(R() * 4) | 0];
+        const gg = x.createRadialGradient(sx, sy, 0, sx, sy, sr); gg.addColorStop(0, '#ffffff'); gg.addColorStop(.3, col + 'aa'); gg.addColorStop(1, col + '00');
+        x.fillStyle = gg; x.fillRect(sx - sr, sy - sr, sr * 2, sr * 2);
+        x.strokeStyle = 'rgba(255,255,255,.7)'; x.lineWidth = 1; x.beginPath();
+        x.moveTo(sx - sr * 1.6, sy); x.lineTo(sx + sr * 1.6, sy); x.moveTo(sx, sy - sr * 1.6); x.lineTo(sx, sy + sr * 1.6); x.stroke();
+      }
+      x.globalCompositeOperation = 'source-over';
+    }
     for (const p of L.pl) planet(x, p[0], p[1] * W, p[2] * H, p[3], R);
     return c;
   }
@@ -163,12 +214,13 @@ const Volfied = (() => {
     const total = (GW - 2) * (GH - 2);
     const layer = document.createElement('canvas'); layer.width = W; layer.height = H;
     const lc = layer.getContext('2d');
-    let L, li = 0, bg, dimBg, tw = [];
+    let L, li = 0, bg, dimBg, tw = [], ss = [], D = diffOf(0);
     let lives = MAXL, score = 0, pct = 0, cleared = 0, dir = null, trail = [], tstart = [0, 0], tick = 0;
     let alive = true, state = 'intro', stT = 0, timeLeft = TIME, acc = 0, last = 0, shake = 0, raf = 0, dirty = true, lastSec = -1, bonus = 0, earned = 0, perfect = false, lvlReward = 0;
     const player = { x: GW >> 1, y: GH - 1 };
     let creatures = [];
     const parts = [], texts = [];
+    let firstShow = false;
 
     const hud = () => {
       const s = Math.max(0, Math.ceil(timeLeft / 1000));
@@ -201,22 +253,22 @@ const Volfied = (() => {
         spin: (Math.random() < .5 ? -1 : 1) * (.03 + Math.random() * .05), r: boss ? 3.2 : 1.2,
         timer: 30 + Math.random() * 60, turn: 0, mode: 0, hist: [], alpha: 1 };
       e.wr = boss ? 2.0 : .6; e.tr = boss ? 2.6 : 1.0;
-      e.sp = L.sp * SPD * MUL[t] * (boss ? .8 : 1);
+      e.sp = L.sp * SPD * MUL[t] * (boss ? .8 : 1) * D.spd;
       e.name = boss ? L.boss : '';
-      if (t === 'dash') e.timer = 60 + Math.random() * 60;
-      if (t === 'teleport') e.timer = 120 + Math.random() * 100;
+      if (t === 'dash') e.timer = (60 + Math.random() * 60) * D.cd;
+      if (t === 'teleport') e.timer = (120 + Math.random() * 100) * D.cd;
       return e;
     }
     function startLevel(i) {
-      li = i; L = LV[i]; bg = makeBg(L, i);
+      li = i; L = LV[i]; D = diffOf(i); firstShow = false; bg = makeBg(L, i);
       dimBg = document.createElement('canvas'); dimBg.width = W; dimBg.height = H;
-      const d = dimBg.getContext('2d'); d.drawImage(bg, 0, 0); d.fillStyle = 'rgba(2,4,14,.58)'; d.fillRect(0, 0, W, H);
+      const d = dimBg.getContext('2d'); d.drawImage(bg, 0, 0); d.fillStyle = L.br ? 'rgba(2,4,14,.38)' : 'rgba(2,4,14,.58)'; d.fillRect(0, 0, W, H);
       g.fill(0); fresh.fill(0);
       for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) if (x === 0 || y === 0 || x === GW - 1 || y === GH - 1) g[y * GW + x] = 1;
       trail = []; dir = null; player.x = GW >> 1; player.y = GH - 1; tstart = [player.x, player.y];
       pct = 0; perfect = false; lvlReward = 0; timeLeft = TIME; parts.length = 0; texts.length = 0; lastSec = -1;
-      creatures = []; creatures.push(mk(L.bt, true)); for (const t of L.cr) creatures.push(mk(t, false));
-      tw = []; for (let k = 0; k < 40; k++) tw.push({ x: Math.random() * W, y: Math.random() * H, p: Math.random() * 6, s: Math.random() < .2 ? 2 : 1 });
+      creatures = []; creatures.push(mk(L.bt, true)); if (L.bt2) creatures.push(mk(L.bt2, true)); for (const t of L.cr) creatures.push(mk(t, false));
+      tw = []; ss = []; for (let k = 0; k < (L.br ? 120 : 40); k++) tw.push({ x: Math.random() * W, y: Math.random() * H, p: Math.random() * 6, s: Math.random() < .2 ? 2 : 1, z: L.br ? [.4, .8, 1.4][k % 3] : 0, g: !!L.br && k % 6 === 0, c: k % 4 });
       dirty = true; state = 'intro'; stT = 2300; hud();
     }
 
@@ -319,18 +371,22 @@ const Volfied = (() => {
         case 'snake':
           e.ang += Math.sin(e.ph * .8) * .07; break;
         case 'chase':
-          if (trail.length) {
-            const want = Math.atan2(player.y + .5 - e.y, player.x + .5 - e.x), d = angDiff(want, e.ang), rate = e.boss ? .014 : .024;
-            e.ang += Math.max(-rate, Math.min(rate, d));
-          } else e.ang += Math.sin(e.ph * .5) * .03;
+          { const rate = (e.boss ? .014 : .024) * D.rate, lx = D.lead && dir ? dir[0] * D.lead : 0, ly = D.lead && dir ? dir[1] * D.lead : 0;
+            if (trail.length) {
+              const want = Math.atan2(player.y + .5 + ly - e.y, player.x + .5 + lx - e.x), d = angDiff(want, e.ang);
+              e.ang += Math.max(-rate, Math.min(rate, d));
+            } else if (D.lead) {
+              const want = Math.atan2(player.y + .5 - e.y, player.x + .5 - e.x), d = angDiff(want, e.ang);
+              e.ang += Math.max(-rate * .4, Math.min(rate * .4, d));
+            } else e.ang += Math.sin(e.ph * .5) * .03; }
           break;
         case 'dash':
           if (e.mode === 0) {
             sp *= .55; e.ang += (Math.random() - .5) * .08;
-            if (--e.timer <= 0) { e.mode = 1; e.timer = 26; e.ang = Math.atan2(player.y + .5 - e.y, player.x + .5 - e.x); }
+            if (--e.timer <= 0) { e.mode = 1; e.timer = 26; e.ang = Math.atan2(player.y + .5 + (D.lead && dir ? dir[1] * D.lead : 0) - e.y, player.x + .5 + (D.lead && dir ? dir[0] * D.lead : 0) - e.x); }
           } else {
             sp *= 3.4;
-            if (--e.timer <= 0) { e.mode = 0; e.timer = 70 + Math.random() * 70; }
+            if (--e.timer <= 0) { e.mode = 0; e.timer = (70 + Math.random() * 70) * D.cd; }
           }
           break;
         case 'teleport':
@@ -338,15 +394,15 @@ const Volfied = (() => {
             e.ang += (Math.random() - .5) * .1;
             if (--e.timer <= 0) e.mode = 1;
           } else if (e.mode === 1) {
-            e.alpha -= .05;
+            e.alpha -= .05 / D.cd;
             if (e.alpha <= 0) {
               e.alpha = 0; const s = openSpot();
               if (s) { e.x = s[0]; e.y = s[1]; burst(e.x * CS, e.y * CS, COL.teleport, 10, 2); }
               e.mode = 2;
             }
           } else {
-            e.alpha += .05;
-            if (e.alpha >= 1) { e.alpha = 1; e.mode = 0; e.timer = 110 + Math.random() * 110; }
+            e.alpha += .05 / D.cd;
+            if (e.alpha >= 1) { e.alpha = 1; e.mode = 0; e.timer = (110 + Math.random() * 110) * D.cd; }
           }
           break;
       }
@@ -364,7 +420,16 @@ const Volfied = (() => {
       for (const i of trail) g[i] = 0;
       trail = []; dir = null; player.x = tstart[0]; player.y = tstart[1];
       hud();
-      if (lives <= 0) return finish(false, 'life');
+      if (lives <= 0) {
+        if (li >= CONT_FROM && ui.cont) {          // 5. bölümden itibaren: Devam Et / Bitir (15 sn)
+          state = 'cont';
+          return ui.cont(CONT_NEED(li), ok => {
+            if (!alive || state !== 'cont') return;
+            if (ok) { lives = 1; state = 'pause'; stT = 900; hud(); } else finish(false, 'life');
+          });
+        }
+        return finish(false, 'life');
+      }
       state = 'pause'; stT = 700;
     }
 
@@ -372,22 +437,26 @@ const Volfied = (() => {
     function levelWin() {
       if (state !== 'play') return;
       cleared++;
-      lvlReward = perfect ? R_FULL : R_STD; earned += lvlReward;   // normal 5 WRGP, %100 ise 8 WRGP
+      if (li < FIRST_N) lvlReward = perfect ? R_FULL : R_STD;       // 1-10: 5 WRGP (%100 ise 8)
+      else lvlReward = li === NL - 1 ? R_LAST : R_HI;              // 11-19: 10, 20: 20
+      earned += lvlReward;
       bonus = Math.ceil(timeLeft / 1000) * 10;
       score += bonus;
       lives = Math.min(MAXL, lives + 1);
       dir = null; hp('medium');
-      if (li >= NL - 1) return finish(true, 'win');
-      state = 'clear'; stT = 2300; hud();
+      if (li === FIRST_N - 1) { earned += FIRST_BONUS; firstShow = true; }   // ilk periyot bitti: bonus + tebrik, oyun 11. bölümle sürer
+      if (li >= NL - 1) { earned += FINAL_BONUS; return finish(true, 'win'); }
+      state = 'clear'; stT = firstShow ? 4200 : 2300; hud();
     }
     function finish(win, why) {
       if (!alive || state === 'over') return;
       state = 'over'; dir = null;
-      const reward = earned + (cleared >= NL ? 50 : 0);   // bölüm başı 5 (ya da %100 ise 8) WRGP, 10 bölüm bitince +50
+      const reward = earned;
       const title = win ? tl('vf_win') : (why === 'time' ? tl('time_up') : tl('lives_out'));
-      ui.end({ kind: 'vf', score, reward, win, title,
-        lines: [tl('vf_l1', { c: cleared, n: NL }), tl('vf_l2', { p: Math.round(pct * 100) }), tl('vf_l3', { s: score }),
-                tl('vf_l4', { r: reward, f: cleared >= NL ? tl('vf_final') : '' })] });
+      const lines = [tl('vf_l1', { c: cleared, n: NL }), tl('vf_l2', { p: Math.round(pct * 100) }), tl('vf_l3', { s: score }), tl('vf_l4', { r: reward })];
+      if (cleared >= FIRST_N) lines.push(tl('vf_l5', { b: FIRST_BONUS }));
+      if (win) lines.push(tl('vf_l6', { b: FINAL_BONUS }));
+      ui.end({ kind: 'vf', score, reward, win, title, lines });
     }
     function step() {
       if (!modalEl.classList.contains('hidden')) return;
@@ -476,13 +545,38 @@ const Volfied = (() => {
       body(e, T);
       ctx.restore();
     }
+    const GCOL = ['#9fd8ff', '#ffd9a0', '#ffb0e8', '#b0ffd8'];
+    const glow = GCOL.map(c => { const k = document.createElement('canvas'); k.width = k.height = 32; const q = k.getContext('2d'); const rg = q.createRadialGradient(16, 16, 0, 16, 16, 16); rg.addColorStop(0, '#ffffff'); rg.addColorStop(.25, c); rg.addColorStop(1, c + '00'); q.fillStyle = rg; q.fillRect(0, 0, 32, 32); return k; });
+    function drawSky(T) {   // 11-20: çok katmanlı kayan yıldızlar, ışıltılar, kayan yıldız
+      for (const t of tw) {
+        const a = .3 + .7 * Math.abs(Math.sin(T * (1.2 + t.z) + t.p)), px = (t.x + T * t.z * 5) % W, py = (t.y + T * t.z * 1.5) % H;
+        ctx.globalAlpha = a;
+        if (t.g) { const sz = 14 + 10 * a; ctx.drawImage(glow[t.c], px - sz / 2, py - sz / 2, sz, sz); }
+        else { const z = t.s * (t.z > 1 ? 1.6 : 1.1); ctx.fillStyle = '#fff'; ctx.fillRect(px, py, z, z); }
+      }
+      if (ss.length < 3 && Math.random() < (li === NL - 1 ? .03 : .008)) ss.push({ x: Math.random() * W * .8, y: Math.random() * H * .4, vx: 7 + Math.random() * 5, vy: 3 + Math.random() * 3, l: 38 });
+      for (let i = ss.length - 1; i >= 0; i--) {
+        const q = ss[i]; q.x += q.vx; q.y += q.vy;
+        if (--q.l <= 0) { ss.splice(i, 1); continue; }
+        const gr = ctx.createLinearGradient(q.x - q.vx * 5, q.y - q.vy * 5, q.x, q.y);
+        gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(1, 'rgba(255,255,255,.95)');
+        ctx.globalAlpha = Math.min(1, q.l / 12); ctx.strokeStyle = gr; ctx.lineWidth = 2; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(q.x - q.vx * 5, q.y - q.vy * 5); ctx.lineTo(q.x, q.y); ctx.stroke();
+      }
+      if (li === NL - 1) { ctx.globalAlpha = .05; ctx.fillStyle = 'hsl(' + ((T * 30) % 360) + ',90%,60%)'; ctx.fillRect(0, 0, W, H); }   // ultra bölüm: renk nabzı
+    }
+    function ft(s, y, size, col) {   // sığacak şekilde küçülen yazı
+      let z = size; ctx.fillStyle = col;
+      do { ctx.font = 'bold ' + z + 'px sans-serif'; z--; } while (ctx.measureText(s).width > W - 24 && z > 9);
+      ctx.fillText(s, W / 2, y);
+    }
     function draw(T) {
       if (dirty) rebuild();
       ctx.save();
       if (shake > 0) { ctx.translate((Math.random() - .5) * shake, (Math.random() - .5) * shake); shake *= .86; if (shake < .5) shake = 0; }
       ctx.drawImage(layer, 0, 0);
       ctx.globalAlpha = .85;
-      for (const t of tw) { ctx.fillStyle = '#fff'; ctx.globalAlpha = .25 + .5 * Math.abs(Math.sin(T * 2 + t.p)); ctx.fillRect(t.x, t.y, t.s, t.s); }
+      if (L.br) drawSky(T); else for (const t of tw) { ctx.fillStyle = '#fff'; ctx.globalAlpha = .25 + .5 * Math.abs(Math.sin(T * 2 + t.p)); ctx.fillRect(t.x, t.y, t.s, t.s); }
       ctx.globalAlpha = 1;
       for (let i = 0; i < fresh.length; i++) if (fresh[i]) {
         ctx.fillStyle = 'rgba(255,255,255,' + (fresh[i] / 255 * .75) + ')';
@@ -510,10 +604,15 @@ const Volfied = (() => {
         ctx.fillStyle = 'rgba(2,4,14,.62)'; ctx.fillRect(0, H * .3, W, 190);
         ctx.fillStyle = '#fff'; ctx.shadowColor = L.ac; ctx.shadowBlur = 16;
         if (state === 'intro') {
-          ctx.font = 'bold 20px sans-serif'; ctx.fillStyle = L.ac; ctx.fillText(tl('level_of', { a: li + 1, b: NL }), W / 2, H * .3 + 42);
+          ft(li === NL - 1 ? tl('final_lvl') : tl('level_of', { a: li + 1, b: NL }), H * .3 + 42, 20, li === NL - 1 ? '#ff5a6e' : L.ac);
           ctx.font = 'bold 29px sans-serif'; ctx.fillStyle = '#fff'; ctx.fillText(LVN(li)[0], W / 2, H * .3 + 88);
           ctx.font = '15px sans-serif'; ctx.fillStyle = '#ff6a7e'; ctx.fillText(tl('boss_lbl', { n: LVN(li)[1] }), W / 2, H * .3 + 128);
           ctx.fillStyle = '#cfe'; ctx.fillText(tl('goal'), W / 2, H * .3 + 158);
+        } else if (firstShow) {   // 10. bölüm bitti: ilk periyot tebriği
+          ft(tl('level_done'), H * .3 + 40, 24, '#00e676');
+          ft(tl('first_done'), H * .3 + 78, 19, '#ffd700');
+          ft(tl('first_sub', { b: FIRST_BONUS }), H * .3 + 112, 18, '#ffffff');
+          ft(tl('first_next'), H * .3 + 148, 15, '#cceeff');
         } else {
           ctx.font = 'bold 30px sans-serif'; ctx.fillStyle = '#00e676'; ctx.fillText(tl('level_done'), W / 2, H * .3 + 46);
           ctx.font = 'bold 16px sans-serif'; ctx.fillStyle = '#ffd700'; ctx.fillText(tl(perfect ? 'lvl_perfect' : 'lvl_reward', { r: lvlReward }), W / 2, H * .3 + 82);
