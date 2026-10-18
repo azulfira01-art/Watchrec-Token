@@ -36,7 +36,7 @@ I18N.en = {
   vf_l1: 'Levels completed: <b>{c}/{n}</b>', vf_l2: 'Final area: <b>{p}%</b>', vf_l3: 'Score: <b>{s}</b>',
   vf_l4: 'Reward: {r} WRGP (5–8 per level{f})', vf_final: ' + 50 final bonus',
   lvl_reward: 'Level reward +{r} WRGP', lvl_perfect: 'ALL CREATURES CLEARED · 100% · +{r} WRGP', lb_step: 'Ad 1/2 watched — one more ad for +1 Life',
-  vf_hint: 'Swipe (or arrow keys) • draw a line from the edge into open space • creatures trapped in a small area die • 60 sec per level'
+  vf_hint: 'Swipe (or arrow keys) • draw a line from the edge into open space • creatures trapped in a small area die • time limit varies by level'
 };
 I18N.tr = {
   nav_games: 'Oyunlar', nav_daily: 'Günlük', nav_invite: 'Davet', nav_board: 'Sıralama',
@@ -73,7 +73,7 @@ I18N.tr = {
   vf_l1: 'Tamamlanan bölüm: <b>{c}/{n}</b>', vf_l2: 'Son alan: <b>%{p}</b>', vf_l3: 'Skor: <b>{s}</b>',
   vf_l4: 'Ödül: {r} WRGP (bölüm başı 5–8{f})', vf_final: ' + 50 final bonusu',
   lvl_reward: 'Bölüm ödülü +{r} WRGP', lvl_perfect: 'TÜM YARATIKLAR TEMİZLENDİ · %100 · +{r} WRGP', lb_step: '1/2 reklam izlendi — +1 Can için bir reklam daha',
-  vf_hint: 'Parmağını kaydır (veya ok tuşları) • Kenardan boşluğa çizgi çek • Küçük alanda sıkışan yaratık ölür • Her bölüm 60 sn'
+  vf_hint: 'Parmağını kaydır (veya ok tuşları) • Kenardan boşluğa çizgi çek • Küçük alanda sıkışan yaratık ölür • Süre bölüme göre değişir'
 };
 I18N.ru = {
   nav_games: 'Игры', nav_daily: 'Награды', nav_invite: 'Друзья', nav_board: 'Рейтинг',
@@ -110,7 +110,7 @@ I18N.ru = {
   vf_l1: 'Пройдено уровней: <b>{c}/{n}</b>', vf_l2: 'Итоговая площадь: <b>{p}%</b>', vf_l3: 'Очки: <b>{s}</b>',
   vf_l4: 'Награда: {r} WRGP (5–8 за уровень{f})', vf_final: ' + 50 финальный бонус',
   lvl_reward: 'Награда за уровень +{r} WRGP', lvl_perfect: 'ВСЕ СУЩЕСТВА УНИЧТОЖЕНЫ · 100% · +{r} WRGP', lb_step: 'Просмотрено 1/2 — ещё одна реклама за +1 жизнь',
-  vf_hint: 'Свайп (или стрелки) • проведи линию от края в свободное место • существа в небольшой области погибают • 60 сек на уровень'
+  vf_hint: 'Свайп (или стрелки) • проведи линию от края в свободное место • существа в небольшой области погибают • время зависит от уровня'
 };
 I18N.zh = {
   nav_games: '游戏', nav_daily: '每日', nav_invite: '邀请', nav_board: '排行',
@@ -147,7 +147,7 @@ I18N.zh = {
   vf_l1: '已通关：<b>{c}/{n}</b>', vf_l2: '最终面积：<b>{p}%</b>', vf_l3: '得分：<b>{s}</b>',
   vf_l4: '奖励：{r} WRGP（每关 5–8{f}）', vf_final: ' + 50 通关奖励',
   lvl_reward: '关卡奖励 +{r} WRGP', lvl_perfect: '怪物全部消灭 · 100% · +{r} WRGP', lb_step: '已观看 1/2 — 再看一条广告可得 +1 生命',
-  vf_hint: '滑动屏幕（或方向键） • 从边缘向空地画线 • 被困在小区域的怪物会死亡 • 每关 60 秒'
+  vf_hint: '滑动屏幕（或方向键） • 从边缘向空地画线 • 被困在小区域的怪物会死亡 • 每关时间不同'
 };
 I18N.ko = {
   nav_games: '게임', nav_daily: '일일', nav_invite: '초대', nav_board: '순위',
@@ -184,7 +184,7 @@ I18N.ko = {
   vf_l1: '클리어한 스테이지: <b>{c}/{n}</b>', vf_l2: '최종 면적: <b>{p}%</b>', vf_l3: '점수: <b>{s}</b>',
   vf_l4: '보상: {r} WRGP (스테이지당 5–8{f})', vf_final: ' + 50 최종 보너스',
   lvl_reward: '스테이지 보상 +{r} WRGP', lvl_perfect: '모든 크리처 처치 · 100% · +{r} WRGP', lb_step: '광고 1/2 시청 — 하나 더 보면 +1 생명',
-  vf_hint: '스와이프 (또는 방향키) • 가장자리에서 빈 공간으로 선 긋기 • 좁은 영역에 갇힌 크리처는 죽음 • 스테이지당 60초'
+  vf_hint: '스와이프 (또는 방향키) • 가장자리에서 빈 공간으로 선 긋기 • 좁은 영역에 갇힌 크리처는 죽음 • 스테이지마다 시간 다름'
 };
 I18N.es = {
   nav_games: 'Juegos', nav_daily: 'Diario', nav_invite: 'Invitar', nav_board: 'Ranking',
@@ -221,7 +221,7 @@ I18N.es = {
   vf_l1: 'Niveles completados: <b>{c}/{n}</b>', vf_l2: 'Área final: <b>{p}%</b>', vf_l3: 'Puntos: <b>{s}</b>',
   vf_l4: 'Premio: {r} WRGP (5–8 por nivel{f})', vf_final: ' + 50 de bonus final',
   lvl_reward: 'Premio del nivel +{r} WRGP', lvl_perfect: 'TODAS LAS CRIATURAS ELIMINADAS · 100 % · +{r} WRGP', lb_step: 'Anuncio 1/2 visto: otro más para +1 vida',
-  vf_hint: 'Desliza (o usa las flechas) • traza una línea desde el borde hacia el espacio libre • las criaturas atrapadas en un área pequeña mueren • 60 s por nivel'
+  vf_hint: 'Desliza (o usa las flechas) • traza una línea desde el borde hacia el espacio libre • las criaturas atrapadas en un área pequeña mueren • el tiempo varía según el nivel'
 };
 const LVN_DATA = {
   en: [['Earth Orbit', 'Orbit Guardian'], ['Lunar Surface', 'Craterus'], ['Martian Deserts', 'Red Sand Worm'], ['Asteroid Belt', 'Rockbreaker'], ['Jupiter Storm', 'Storm Giant Jovar'],

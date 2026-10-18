@@ -11,6 +11,8 @@ const Volfied = (() => {
   const diffOf = i => i < FIRST_N ? { spd: 1, rate: 1, cd: 1, lead: 0 }
     : i < NL - 1 ? { spd: 1.4 + (i - FIRST_N) * .025, rate: 2, cd: .5, lead: 0 }
     : { spd: 1.8, rate: 3, cd: .35, lead: 7 };
+  /* Bölüm süresi: 1-10: 60 sn · 11-15: 90 sn · 16-19: 120 sn · 20: 180 sn */
+  const timeOf = i => i >= 19 ? 180000 : i >= 15 ? 120000 : i >= 10 ? 90000 : 60000;
   const COL = { bounce: '#ff2d6f', wander: '#ffa726', snake: '#7cff4d', chase: '#ff5252', dash: '#c06bff', teleport: '#4df0ff' };
 
   /* ---------- 10 BÖLÜM TANIMI ---------- */
@@ -216,7 +218,7 @@ const Volfied = (() => {
     const lc = layer.getContext('2d');
     let L, li = 0, bg, dimBg, tw = [], ss = [], D = diffOf(0);
     let lives = MAXL, score = 0, pct = 0, cleared = 0, dir = null, trail = [], tstart = [0, 0], tick = 0;
-    let alive = true, state = 'intro', stT = 0, timeLeft = TIME, acc = 0, last = 0, shake = 0, raf = 0, dirty = true, lastSec = -1, bonus = 0, earned = 0, perfect = false, lvlReward = 0;
+    let alive = true, state = 'intro', stT = 0, curTime = TIME, timeLeft = TIME, acc = 0, last = 0, shake = 0, raf = 0, dirty = true, lastSec = -1, bonus = 0, earned = 0, perfect = false, lvlReward = 0;
     const player = { x: GW >> 1, y: GH - 1 };
     let creatures = [];
     const parts = [], texts = [];
@@ -266,7 +268,7 @@ const Volfied = (() => {
       g.fill(0); fresh.fill(0);
       for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) if (x === 0 || y === 0 || x === GW - 1 || y === GH - 1) g[y * GW + x] = 1;
       trail = []; dir = null; player.x = GW >> 1; player.y = GH - 1; tstart = [player.x, player.y];
-      pct = 0; perfect = false; lvlReward = 0; timeLeft = TIME; parts.length = 0; texts.length = 0; lastSec = -1;
+      pct = 0; perfect = false; lvlReward = 0; curTime = timeOf(i); timeLeft = curTime; parts.length = 0; texts.length = 0; lastSec = -1;
       creatures = []; creatures.push(mk(L.bt, true)); if (L.bt2) creatures.push(mk(L.bt2, true)); for (const t of L.cr) creatures.push(mk(t, false));
       tw = []; ss = []; for (let k = 0; k < (L.br ? 120 : 40); k++) tw.push({ x: Math.random() * W, y: Math.random() * H, p: Math.random() * 6, s: Math.random() < .2 ? 2 : 1, z: L.br ? [.4, .8, 1.4][k % 3] : 0, g: !!L.br && k % 6 === 0, c: k % 4 });
       dirty = true; state = 'intro'; stT = 2300; hud();
@@ -413,6 +415,17 @@ const Volfied = (() => {
       if (e.t === 'teleport' && e.alpha < .4) return;
       if (hitsTrail(e) || (trail.length && Math.hypot(e.x - (player.x + .5), e.y - (player.y + .5)) < e.tr + .4)) loseLife();
     }
+    /* canlar bitti ya da süre doldu: 5. bölümden itibaren Devam Et / Bitir (15 sn) */
+    function noLives(why) {
+      if (li >= CONT_FROM && ui.cont) {
+        state = 'cont'; dir = null;
+        return ui.cont(CONT_NEED(li), ok => {
+          if (!alive || state !== 'cont') return;
+          if (ok) { lives = MAXL; startLevel(li); } else finish(false, why);   // reklam izlendi: aynı bölüm baştan, 3 canla, süre de baştan
+        });
+      }
+      return finish(false, why);
+    }
     function loseLife() {
       if (state !== 'play') return;
       lives--; shake = 16; hp('error');
@@ -420,16 +433,7 @@ const Volfied = (() => {
       for (const i of trail) g[i] = 0;
       trail = []; dir = null; player.x = tstart[0]; player.y = tstart[1];
       hud();
-      if (lives <= 0) {
-        if (li >= CONT_FROM && ui.cont) {          // 5. bölümden itibaren: Devam Et / Bitir (15 sn)
-          state = 'cont';
-          return ui.cont(CONT_NEED(li), ok => {
-            if (!alive || state !== 'cont') return;
-            if (ok) { lives = MAXL; startLevel(li); } else finish(false, 'life');   // reklam izlendi: aynı bölüm baştan, 3 canla
-          });
-        }
-        return finish(false, 'life');
-      }
+      if (lives <= 0) return noLives('life');
       state = 'pause'; stT = 700;
     }
 
@@ -468,7 +472,7 @@ const Volfied = (() => {
       timeLeft -= STEP;
       const sec = Math.ceil(timeLeft / 1000);
       if (sec !== lastSec) { lastSec = sec; hud(); if (sec <= 5 && sec > 0) hp('medium'); }
-      if (timeLeft <= 0) { timeLeft = 0; hud(); return finish(false, 'time'); }
+      if (timeLeft <= 0) { timeLeft = 0; hud(); return noLives('time'); }
       if (tick % 3 === 0) movePlayer();
       if (state !== 'play') return;
       for (let k = creatures.length - 1; k >= 0; k--) { if (state !== 'play') break; if (creatures[k]) stepCreature(creatures[k]); }
@@ -596,7 +600,7 @@ const Volfied = (() => {
       for (const t of texts) { ctx.globalAlpha = Math.min(1, t.l / 25); ctx.fillStyle = t.c; ctx.shadowColor = '#000'; ctx.shadowBlur = 6; ctx.fillText(t.s, Math.max(70, Math.min(W - 70, t.x)), t.y); }
       ctx.globalAlpha = 1; ctx.shadowBlur = 0;
       // süre çubuğu
-      const fr = timeLeft / TIME;
+      const fr = timeLeft / curTime;
       ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.fillRect(0, 0, W, 5);
       ctx.fillStyle = fr < .2 ? '#ff3b5c' : '#00d2ff'; ctx.fillRect(0, 0, W * fr, 5);
       // bölüm duyuruları
@@ -607,7 +611,7 @@ const Volfied = (() => {
           ft(li === NL - 1 ? tl('final_lvl') : tl('level_of', { a: li + 1, b: NL }), H * .3 + 42, 20, li === NL - 1 ? '#ff5a6e' : L.ac);
           ctx.font = 'bold 29px sans-serif'; ctx.fillStyle = '#fff'; ctx.fillText(LVN(li)[0], W / 2, H * .3 + 88);
           ctx.font = '15px sans-serif'; ctx.fillStyle = '#ff6a7e'; ctx.fillText(tl('boss_lbl', { n: LVN(li)[1] }), W / 2, H * .3 + 128);
-          ctx.fillStyle = '#cfe'; ctx.fillText(tl('goal'), W / 2, H * .3 + 158);
+          ctx.fillStyle = '#cfe'; ctx.fillText(tl('goal').replace('60', Math.round(curTime / 1000)), W / 2, H * .3 + 158);
         } else if (firstShow) {   // 10. bölüm bitti: ilk periyot tebriği
           ft(tl('level_done'), H * .3 + 40, 24, '#00e676');
           ft(tl('first_done'), H * .3 + 78, 19, '#ffd700');
