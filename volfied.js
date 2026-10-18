@@ -425,7 +425,7 @@ const Volfied = (() => {
           state = 'cont';
           return ui.cont(CONT_NEED(li), ok => {
             if (!alive || state !== 'cont') return;
-            if (ok) { lives = 1; state = 'pause'; stT = 900; hud(); } else finish(false, 'life');
+            if (ok) { lives = MAXL; startLevel(li); } else finish(false, 'life');   // reklam izlendi: aynı bölüm baştan, 3 canla
           });
         }
         return finish(false, 'life');

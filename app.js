@@ -433,7 +433,24 @@ $('#adBtn').onclick = () => {
 
 /* ---------- Telegram dikey kaydırma kilidi (oyun sırasında aşağı kaydırarak kapanmayı engeller) ---------- */
 function lockSwipes() { try { if (tg && tg.disableVerticalSwipes) tg.disableVerticalSwipes(); } catch (_) {} }
-function unlockSwipes() { try { if (tg && tg.enableVerticalSwipes) tg.enableVerticalSwipes(); } catch (_) {} }
+function unlockSwipes() { /* kilit uygulama boyunca açık kalır; çıkış sol üstteki Telegram kapat butonuyla */ lockSwipes(); }
+lockSwipes();                                    // uygulama açılır açılmaz: aşağı kaydırarak kapatma/küçültme kapalı
+if (tg) { try { tg.onEvent('viewportChanged', lockSwipes); tg.onEvent('activated', lockSwipes); } catch (_) {} }
+/* Yedek (eski Telegram sürümleri): liste en üstteyken aşağı çekme hareketini engelle */
+(function () {
+  let sy = 0;
+  document.addEventListener('touchstart', e => { sy = e.touches[0].clientY; }, { passive: true });
+  document.addEventListener('touchmove', e => {
+    const dy = e.touches[0].clientY - sy;
+    if (dy <= 0) return;
+    let el = e.target;
+    while (el && el !== document.body) {
+      if (el.scrollHeight > el.clientHeight + 1 && el.scrollTop > 0 && /(auto|scroll)/.test(getComputedStyle(el).overflowY)) return;
+      el = el.parentElement;
+    }
+    if (e.cancelable) e.preventDefault();
+  }, { passive: false });
+})();
 
 /* ---------- Oyun yöneticisi ---------- */
 let cur = null;
