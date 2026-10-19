@@ -13,7 +13,6 @@ const Volfied = (() => {
     : { spd: 1.8, rate: 3, cd: .35, lead: 7 };
   /* Bölüm süresi: 1-10: 60 sn · 11-15: 90 sn · 16-19: 120 sn · 20: 180 sn */
   const timeOf = i => i >= FIRST_N ? Infinity : 60000;   // 11-20: süre sınırı yok (Infinity)
-  const unlimited = () => curTime === Infinity;
   const COL = { bounce: '#ff2d6f', wander: '#ffa726', snake: '#7cff4d', chase: '#ff5252', dash: '#c06bff', teleport: '#4df0ff' };
 
   /* ---------- 10 BÖLÜM TANIMI ---------- */
@@ -159,7 +158,7 @@ const Volfied = (() => {
     x.globalCompositeOperation = 'lighter';
     for (let i = 0; i < L.neb + (L.br ? 4 : 0); i++) {
       const nx = R() * W, ny = R() * H, nr = 90 + R() * 170, col = L.nc[i % L.nc.length];
-      const rg = x.createRadialGradient(nx, ny, 0, nx, ny, nr); rg.addColorStop(0, col + (L.br ? 'a0' : '66')); rg.addColorStop(1, col + '00');
+      const rg = x.createRadialGradient(nx, ny, 0, nx, ny, nr); rg.addColorStop(0, col + (L.br ? '88' : '66')); rg.addColorStop(1, col + '00');
       x.fillStyle = rg; x.fillRect(nx - nr, ny - nr, nr * 2, nr * 2);
     }
     if (L.mw) {
@@ -174,7 +173,7 @@ const Volfied = (() => {
       for (let b = 0; b < 3; b++) {
         const col = L.nc[b % L.nc.length], y0 = H * (.12 + R() * .6), amp = 30 + R() * 50, fr = .008 + R() * .01, ph = R() * 6;
         for (let k = 0; k < 6; k++) {
-          x.strokeStyle = col + '1c'; x.lineWidth = 64 - k * 10; x.lineCap = 'round'; x.beginPath();
+          x.strokeStyle = col + '16'; x.lineWidth = 64 - k * 10; x.lineCap = 'round'; x.beginPath();
           for (let px = -10; px <= W + 10; px += 12) { const py = y0 + Math.sin(px * fr + ph) * amp + Math.sin(px * fr * 2.3 + ph) * amp * .4; if (px < 0) x.moveTo(px, py); else x.lineTo(px, py); }
           x.stroke();
         }
@@ -218,8 +217,10 @@ const Volfied = (() => {
     const layer = document.createElement('canvas'); layer.width = W; layer.height = H;
     const lc = layer.getContext('2d');
     let L, li = 0, bg, dimBg, tw = [], ss = [], D = diffOf(0);
+    let ast = [], fst = [], deb = [], sk0 = null, skT = 0;   // 11-20: arka plan asteroitleri, hızlı yıldızlar, süpernova
     let lives = MAXL, score = 0, pct = 0, cleared = 0, dir = null, trail = [], tstart = [0, 0], tick = 0;
     let alive = true, state = 'intro', stT = 0, curTime = TIME, timeLeft = TIME, acc = 0, last = 0, shake = 0, raf = 0, dirty = true, lastSec = -1, bonus = 0, earned = 0, perfect = false, lvlReward = 0;
+    const unlimited = () => curTime === Infinity;   // süre sınırı yok (11-20)
     const player = { x: GW >> 1, y: GH - 1 };
     let creatures = [];
     const parts = [], texts = [];
@@ -265,12 +266,13 @@ const Volfied = (() => {
     function startLevel(i) {
       li = i; L = LV[i]; D = diffOf(i); firstShow = false; bg = makeBg(L, i);
       dimBg = document.createElement('canvas'); dimBg.width = W; dimBg.height = H;
-      const d = dimBg.getContext('2d'); d.drawImage(bg, 0, 0); d.fillStyle = L.br ? 'rgba(2,4,14,.38)' : 'rgba(2,4,14,.58)'; d.fillRect(0, 0, W, H);
+      const d = dimBg.getContext('2d'); d.drawImage(bg, 0, 0); d.fillStyle = L.br ? 'rgba(2,4,14,.46)' : 'rgba(2,4,14,.58)'; d.fillRect(0, 0, W, H);
       g.fill(0); fresh.fill(0);
       for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) if (x === 0 || y === 0 || x === GW - 1 || y === GH - 1) g[y * GW + x] = 1;
       trail = []; dir = null; player.x = GW >> 1; player.y = GH - 1; tstart = [player.x, player.y];
       pct = 0; perfect = false; lvlReward = 0; curTime = timeOf(i); timeLeft = curTime; parts.length = 0; texts.length = 0; lastSec = -1;
       creatures = []; creatures.push(mk(L.bt, true)); if (L.bt2) creatures.push(mk(L.bt2, true)); for (const t of L.cr) creatures.push(mk(t, false));
+      initSky();
       tw = []; ss = []; for (let k = 0; k < (L.br ? 120 : 40); k++) tw.push({ x: Math.random() * W, y: Math.random() * H, p: Math.random() * 6, s: Math.random() < .2 ? 2 : 1, z: L.br ? [.4, .8, 1.4][k % 3] : 0, g: !!L.br && k % 6 === 0, c: k % 4 });
       dirty = true; state = 'intro'; stT = 2300; hud();
     }
@@ -552,7 +554,83 @@ const Volfied = (() => {
     }
     const GCOL = ['#9fd8ff', '#ffd9a0', '#ffb0e8', '#b0ffd8'];
     const glow = GCOL.map(c => { const k = document.createElement('canvas'); k.width = k.height = 32; const q = k.getContext('2d'); const rg = q.createRadialGradient(16, 16, 0, 16, 16, 16); rg.addColorStop(0, '#ffffff'); rg.addColorStop(.25, c); rg.addColorStop(1, c + '00'); q.fillStyle = rg; q.fillRect(0, 0, 32, 32); return k; });
-    function drawSky(T) {   // 11-20: çok katmanlı kayan yıldızlar, ışıltılar, kayan yıldız
+
+    /* ---------- 11-20: arka plan asteroitleri, hızlı yıldızlar ve 20. bölümde süpernova ---------- */
+    function initSky() {
+      sk0 = null; skT = 0; ast = []; fst = []; deb = [];
+      if (!L.br) return;
+      const last = li === NL - 1, n = last ? 14 : 9;
+      for (let k = 0; k < n; k++) {
+        const fast = k % 3 === 2, r = fast ? 3 + Math.random() * 4 : 5 + Math.random() * 11, a = .3 + Math.random() * .9, v = fast ? 90 + Math.random() * 70 : 8 + Math.random() * 12, pts = [];
+        for (let j = 0; j < 8; j++) pts.push(.7 + Math.random() * .5);
+        ast.push({ x: Math.random() * W, y: Math.random() * H, vx: Math.cos(a) * v, vy: Math.sin(a) * v, r, rot: Math.random() * 6, vr: (Math.random() - .5) * (fast ? 4 : .8), pts, fast });
+      }
+      for (let k = 0; k < (last ? 12 : 8); k++) {
+        const a = .3 + Math.random() * .9, v = 190 + Math.random() * 150;
+        fst.push({ x: Math.random() * W, y: Math.random() * H, vx: Math.cos(a) * v, vy: Math.sin(a) * v, al: .4 + Math.random() * .5 });
+      }
+      for (let k = 0; k < 44; k++) deb.push({ a: Math.random() * TAU, s: .35 + Math.random() * .65, z: 1 + Math.random() * 2.2, c: k % 3 });
+    }
+    function drawDrift(T) {
+      const dt = sk0 === null ? 0 : Math.min(.1, T - skT); skT = T;
+      for (const q of fst) {   // hızlı geçen yıldız çizgileri
+        q.x += q.vx * dt; q.y += q.vy * dt;
+        if (q.x > W + 60 || q.y > H + 60) { q.x = -40 - Math.random() * 60; q.y = Math.random() * H * .9; }
+        const gr = ctx.createLinearGradient(q.x - q.vx * .11, q.y - q.vy * .11, q.x, q.y);
+        gr.addColorStop(0, 'rgba(190,225,255,0)'); gr.addColorStop(1, 'rgba(235,245,255,' + q.al + ')');
+        ctx.globalAlpha = 1; ctx.strokeStyle = gr; ctx.lineWidth = 1.4; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(q.x - q.vx * .11, q.y - q.vy * .11); ctx.lineTo(q.x, q.y); ctx.stroke();
+      }
+      for (const a of ast) {   // yavaş ve hızlı asteroitler
+        a.x += a.vx * dt; a.y += a.vy * dt; a.rot += a.vr * dt;
+        if (a.x > W + 40) { a.x = -30; a.y = Math.random() * H; } else if (a.y > H + 40) { a.y = -30; a.x = Math.random() * W; }
+        if (a.fast) {
+          const gr = ctx.createLinearGradient(a.x - a.vx * .1, a.y - a.vy * .1, a.x, a.y);
+          gr.addColorStop(0, 'rgba(255,190,130,0)'); gr.addColorStop(1, 'rgba(255,200,150,.45)');
+          ctx.globalAlpha = 1; ctx.strokeStyle = gr; ctx.lineWidth = a.r * .9; ctx.lineCap = 'round';
+          ctx.beginPath(); ctx.moveTo(a.x - a.vx * .1, a.y - a.vy * .1); ctx.lineTo(a.x, a.y); ctx.stroke();
+        }
+        ctx.save(); ctx.translate(a.x, a.y); ctx.rotate(a.rot); ctx.globalAlpha = a.fast ? .75 : .6;
+        ctx.beginPath();
+        for (let j = 0; j < 8; j++) { const an = j / 8 * TAU, d = a.r * a.pts[j]; if (j) ctx.lineTo(Math.cos(an) * d, Math.sin(an) * d); else ctx.moveTo(d, 0); }
+        ctx.closePath(); ctx.fillStyle = '#8c7f73'; ctx.fill(); ctx.strokeStyle = 'rgba(20,14,10,.6)'; ctx.lineWidth = 1; ctx.stroke();
+        ctx.fillStyle = 'rgba(0,0,0,.25)'; ctx.beginPath(); ctx.arc(a.r * .2, -a.r * .15, a.r * .22, 0, TAU); ctx.fill();
+        ctx.restore();
+      }
+      ctx.globalAlpha = 1;
+    }
+    /* 20. bölüm: çok uzakta bir yıldız diğerine çarpar; patlama 40 sn boyunca yavaşça büyür, söner (60 sn'lik döngü) */
+    function drawNova(T) {
+      const AP = 14, EX = 40, C = 60, u = (T - sk0) % C, cx = W * .7, cy = H * .17;
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      const orb = (x, y, sz, gi, al) => { ctx.globalAlpha = al; ctx.drawImage(glow[gi], x - sz / 2, y - sz / 2, sz, sz); };
+      if (u < AP) {
+        const k = u / AP, e = k * k;
+        orb(cx - 150 * (1 - e), cy - 55 * (1 - e), 26 + 8 * k, 0, .95);
+        orb(cx + 140 * (1 - e), cy + 50 * (1 - e), 20 + 8 * k, 1, .95);
+      } else if (u < AP + EX) {
+        const te = (u - AP) / EX, eo = 1 - Math.pow(1 - te, 2.2), fade = Math.pow(1 - te, 1.3);
+        if (te < .05) { const fa = 1 - te / .05, fr = 40 + 160 * te / .05, g1 = ctx.createRadialGradient(cx, cy, 0, cx, cy, fr); g1.addColorStop(0, 'rgba(255,255,255,' + fa + ')'); g1.addColorStop(1, 'rgba(255,255,255,0)'); ctx.globalAlpha = 1; ctx.fillStyle = g1; ctx.fillRect(cx - fr, cy - fr, fr * 2, fr * 2); }
+        const rr = 18 + 100 * eo, g2 = ctx.createRadialGradient(cx, cy, 0, cx, cy, rr);
+        g2.addColorStop(0, 'rgba(255,255,235,.95)'); g2.addColorStop(.25, 'rgba(255,200,90,.75)'); g2.addColorStop(.6, 'rgba(255,90,40,.4)'); g2.addColorStop(1, 'rgba(160,40,200,0)');
+        ctx.globalAlpha = .35 + .65 * fade; ctx.fillStyle = g2; ctx.fillRect(cx - rr, cy - rr, rr * 2, rr * 2);
+        const nr = 40 + 190 * eo, g3 = ctx.createRadialGradient(cx, cy, nr * .3, cx, cy, nr);
+        g3.addColorStop(0, 'rgba(255,90,170,.22)'); g3.addColorStop(.6, 'rgba(110,80,255,.14)'); g3.addColorStop(1, 'rgba(60,120,255,0)');
+        ctx.globalAlpha = Math.min(1, fade * 1.4); ctx.fillStyle = g3; ctx.fillRect(cx - nr, cy - nr, nr * 2, nr * 2);
+        for (let w = 0; w < 2; w++) {   // şok dalgaları
+          const p = Math.max(0, te - w * .12) / (1 - w * .12), R = (60 + 230 * (1 - Math.pow(1 - p, 2))) * (1 - w * .25);
+          ctx.globalAlpha = Math.max(0, (1 - p)) * .65; ctx.strokeStyle = w ? '#ffb0e8' : '#bfe6ff'; ctx.lineWidth = 3 * (1 - p) + 1;
+          ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.stroke();
+        }
+        for (const d of deb) {   // savrulan parçalar
+          const dd = d.s * 170 * eo, x = cx + Math.cos(d.a) * dd, y = cy + Math.sin(d.a) * dd;
+          ctx.globalAlpha = fade * .9; ctx.drawImage(glow[d.c], x - d.z * 3, y - d.z * 3, d.z * 6, d.z * 6);
+        }
+      }
+      ctx.restore();
+    }
+    function drawSky(T) {
+      if (sk0 === null) sk0 = T;   // 11-20: çok katmanlı kayan yıldızlar, ışıltılar, kayan yıldız
       for (const t of tw) {
         const a = .3 + .7 * Math.abs(Math.sin(T * (1.2 + t.z) + t.p)), px = (t.x + T * t.z * 5) % W, py = (t.y + T * t.z * 1.5) % H;
         ctx.globalAlpha = a;
@@ -568,7 +646,9 @@ const Volfied = (() => {
         ctx.globalAlpha = Math.min(1, q.l / 12); ctx.strokeStyle = gr; ctx.lineWidth = 2; ctx.lineCap = 'round';
         ctx.beginPath(); ctx.moveTo(q.x - q.vx * 5, q.y - q.vy * 5); ctx.lineTo(q.x, q.y); ctx.stroke();
       }
-      if (li === NL - 1) { ctx.globalAlpha = .05; ctx.fillStyle = 'hsl(' + ((T * 30) % 360) + ',90%,60%)'; ctx.fillRect(0, 0, W, H); }   // ultra bölüm: renk nabzı
+      drawDrift(T);
+      if (li === NL - 1) drawNova(T);
+      if (li === NL - 1) { ctx.globalAlpha = .03; ctx.fillStyle = 'hsl(' + ((T * 30) % 360) + ',90%,60%)'; ctx.fillRect(0, 0, W, H); }   // ultra bölüm: renk nabzı
     }
     function ft(s, y, size, col) {   // sığacak şekilde küçülen yazı
       let z = size; ctx.fillStyle = col;
