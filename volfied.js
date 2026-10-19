@@ -3,16 +3,17 @@ const Volfied = (() => {
   const GW = 40, GH = 56, CS = 12, W = GW * CS, H = GH * CS;
   const TARGET = 0.7, FULL = 0.99, R_STD = 5, R_FULL = 8, STEP = 1000 / 60, TIME = 60000, MAXL = 3, NL = 20, TAU = 6.2832;
   /* ---- 20 BÖLÜM AYARLARI (buradan değiştirilebilir) ---- */
-  const R_HI = 10, R_LAST = 20;            // 11-19. bölüm: 10 WRGP, 20. bölüm: 20 WRGP
-  const FIRST_BONUS = 100, FINAL_BONUS = 300; // 10. bölüm (ilk periyot) bonusu / 20 bölüm bitince ekstra
+  const R_HI = 25, R_LAST = 25;            // 11-20. bölümlerin her biri: 25 WRGP
+  const FIRST_BONUS = 100, FINAL_BONUS = 500; // 10. bölüm (ilk periyot) bonusu / 20 bölüm bitince ekstra
   const FIRST_N = 10, CONT_FROM = 4;       // ilk periyot 10 bölüm; Devam Et/Bitir ekranı 5. bölümden (indeks 4) itibaren
-  const CONT_NEED = li => (li >= FIRST_N ? 2 : 1);   // devam için gereken reklam sayısı
+  const CONT_NEED = li => 1;   // devam için gereken reklam sayısı: tüm bölümlerde 1 (+1 can butonuyla aynı reklam akışı)
   /* Zorluk: 1-10 normal; 11-19 ≈2 kat (hız x1.4+, tepki x2, bekleme süreleri yarı); 20 ultra */
   const diffOf = i => i < FIRST_N ? { spd: 1, rate: 1, cd: 1, lead: 0 }
     : i < NL - 1 ? { spd: 1.4 + (i - FIRST_N) * .025, rate: 2, cd: .5, lead: 0 }
     : { spd: 1.8, rate: 3, cd: .35, lead: 7 };
   /* Bölüm süresi: 1-10: 60 sn · 11-15: 90 sn · 16-19: 120 sn · 20: 180 sn */
-  const timeOf = i => i >= 19 ? 180000 : i >= 15 ? 120000 : i >= 10 ? 90000 : 60000;
+  const timeOf = i => i >= FIRST_N ? Infinity : 60000;   // 11-20: süre sınırı yok (Infinity)
+  const unlimited = () => curTime === Infinity;
   const COL = { bounce: '#ff2d6f', wander: '#ffa726', snake: '#7cff4d', chase: '#ff5252', dash: '#c06bff', teleport: '#4df0ff' };
 
   /* ---------- 10 BÖLÜM TANIMI ---------- */
@@ -225,7 +226,7 @@ const Volfied = (() => {
     let firstShow = false;
 
     const hud = () => {
-      const s = Math.max(0, Math.ceil(timeLeft / 1000));
+      const s = unlimited() ? '∞' : Math.max(0, Math.ceil(timeLeft / 1000));
       ui.hud('🚀<b>' + (li + 1) + '</b>/' + NL + ' ⏱<b>' + s + '</b> ❤️<b>' + lives + '</b> <b>' + Math.round(pct * 100) + '%</b>');
     };
     const cellAt = (x, y) => { const cx = Math.floor(x), cy = Math.floor(y); return (cx < 0 || cy < 0 || cx >= GW || cy >= GH) ? 1 : g[cy * GW + cx]; };
@@ -444,7 +445,7 @@ const Volfied = (() => {
       if (li < FIRST_N) lvlReward = perfect ? R_FULL : R_STD;       // 1-10: 5 WRGP (%100 ise 8)
       else lvlReward = li === NL - 1 ? R_LAST : R_HI;              // 11-19: 10, 20: 20
       earned += lvlReward;
-      bonus = Math.ceil(timeLeft / 1000) * 10;
+      bonus = unlimited() ? 0 : Math.ceil(timeLeft / 1000) * 10;
       score += bonus;
       lives = Math.min(MAXL, lives + 1);
       dir = null; hp('medium');
@@ -600,7 +601,7 @@ const Volfied = (() => {
       for (const t of texts) { ctx.globalAlpha = Math.min(1, t.l / 25); ctx.fillStyle = t.c; ctx.shadowColor = '#000'; ctx.shadowBlur = 6; ctx.fillText(t.s, Math.max(70, Math.min(W - 70, t.x)), t.y); }
       ctx.globalAlpha = 1; ctx.shadowBlur = 0;
       // süre çubuğu
-      const fr = timeLeft / curTime;
+      const fr = unlimited() ? 1 : timeLeft / curTime;
       ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.fillRect(0, 0, W, 5);
       ctx.fillStyle = fr < .2 ? '#ff3b5c' : '#00d2ff'; ctx.fillRect(0, 0, W * fr, 5);
       // bölüm duyuruları
@@ -611,7 +612,7 @@ const Volfied = (() => {
           ft(li === NL - 1 ? tl('final_lvl') : tl('level_of', { a: li + 1, b: NL }), H * .3 + 42, 20, li === NL - 1 ? '#ff5a6e' : L.ac);
           ctx.font = 'bold 29px sans-serif'; ctx.fillStyle = '#fff'; ctx.fillText(LVN(li)[0], W / 2, H * .3 + 88);
           ctx.font = '15px sans-serif'; ctx.fillStyle = '#ff6a7e'; ctx.fillText(tl('boss_lbl', { n: LVN(li)[1] }), W / 2, H * .3 + 128);
-          ctx.fillStyle = '#cfe'; ctx.fillText(tl('goal').replace('60', Math.round(curTime / 1000)), W / 2, H * .3 + 158);
+          ctx.fillStyle = '#cfe'; ctx.fillText((unlimited() ? tl('goal_inf') : tl('goal').replace('60', Math.round(curTime / 1000))), W / 2, H * .3 + 158);
         } else if (firstShow) {   // 10. bölüm bitti: ilk periyot tebriği
           ft(tl('level_done'), H * .3 + 40, 24, '#00e676');
           ft(tl('first_done'), H * .3 + 78, 19, '#ffd700');
