@@ -225,6 +225,7 @@ const Volfied = (() => {
     let creatures = [];
     const parts = [], texts = [];
     let firstShow = false;
+    let freezeT = 0;   // büyük canavar ölünce (11+. bölüm) diğer yaratıklar 5 sn donar
 
     const hud = () => {
       const s = unlimited() ? '∞' : Math.max(0, Math.ceil(timeLeft / 1000));
@@ -271,7 +272,7 @@ const Volfied = (() => {
       for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) if (x === 0 || y === 0 || x === GW - 1 || y === GH - 1) g[y * GW + x] = 1;
       trail = []; dir = null; player.x = GW >> 1; player.y = GH - 1; tstart = [player.x, player.y];
       pct = 0; perfect = false; lvlReward = 0; curTime = timeOf(i); timeLeft = curTime; parts.length = 0; texts.length = 0; lastSec = -1;
-      creatures = []; creatures.push(mk(L.bt, true)); if (L.bt2) creatures.push(mk(L.bt2, true)); for (const t of L.cr) creatures.push(mk(t, false));
+      freezeT = 0; creatures = []; creatures.push(mk(L.bt, true)); if (L.bt2) creatures.push(mk(L.bt2, true)); for (const t of L.cr) creatures.push(mk(t, false));
       initSky();
       tw = []; ss = []; for (let k = 0; k < (L.br ? 120 : 40); k++) tw.push({ x: Math.random() * W, y: Math.random() * H, p: Math.random() * 6, s: Math.random() < .2 ? 2 : 1, z: L.br ? [.4, .8, 1.4][k % 3] : 0, g: !!L.br && k % 6 === 0, c: k % 4 });
       dirty = true; state = 'intro'; stT = 2300; hud();
@@ -336,6 +337,7 @@ const Volfied = (() => {
         burst(e.x * CS, e.y * CS, e.boss ? '#ff2040' : COL[e.t], e.boss ? 60 : 24, e.boss ? 5 : 3);
         floatText(e.x * CS, e.y * CS, e.boss ? tl('boss_killed') : tl('killed'), e.boss ? '#ff5a6e' : '#ffffff');
         shake = Math.max(shake, e.boss ? 24 : 12); hp(e.boss ? 'heavy' : 'medium');
+        if (e.boss && li >= 10) freezeT = 5000;
         creatures.splice(k, 1);
       }
       // %100 kuralı: harita %70 dolmadan tüm yaratıklar/canavar yok olduysa ya da alan zaten (neredeyse) tamamen kapandıysa
@@ -478,6 +480,7 @@ const Volfied = (() => {
       if (timeLeft <= 0) { timeLeft = 0; hud(); return noLives('time'); }
       if (tick % 3 === 0) movePlayer();
       if (state !== 'play') return;
+      if (freezeT > 0) { freezeT -= STEP; if (freezeT < 0) freezeT = 0; return; }   // yaratıklar hareketsiz
       for (let k = creatures.length - 1; k >= 0; k--) { if (state !== 'play') break; if (creatures[k]) stepCreature(creatures[k]); }
     }
 
@@ -684,6 +687,16 @@ const Volfied = (() => {
       const fr = unlimited() ? 1 : timeLeft / curTime;
       ctx.fillStyle = 'rgba(0,0,0,.45)'; ctx.fillRect(0, 0, W, 5);
       ctx.fillStyle = fr < .2 ? '#ff3b5c' : '#00d2ff'; ctx.fillRect(0, 0, W * fr, 5);
+      // dondurma geri sayımı
+      if (freezeT > 0 && state === 'play') {
+        const n = Math.ceil(freezeT / 1000);
+        ctx.save(); ctx.fillStyle = 'rgba(120,220,255,.12)'; ctx.fillRect(0, 0, W, H);
+        ctx.textAlign = 'center'; ctx.shadowColor = '#4df0ff'; ctx.shadowBlur = 18;
+        ctx.fillStyle = '#bff6ff'; ctx.font = 'bold 18px sans-serif'; ctx.fillText(tl('freeze'), W / 2, H * .14);
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 64px sans-serif'; ctx.fillText(String(n), W / 2, H * .14 + 64);
+        ctx.fillStyle = '#4df0ff'; ctx.fillRect(W * .25, H * .14 + 78, W * .5 * (freezeT / 5000), 5);
+        ctx.restore();
+      }
       // bölüm duyuruları
       if (state === 'intro' || state === 'clear') {
         ctx.fillStyle = 'rgba(2,4,14,.62)'; ctx.fillRect(0, H * .3, W, 190);

@@ -2,6 +2,7 @@
 const LANGS = [['en', 'English'], ['tr', 'Türkçe'], ['ru', 'Русский'], ['zh', '中文'], ['ko', '한국어'], ['es', 'Español']];
 const I18N = {};
 I18N.en = {
+  freeze: '❄ Monsters frozen!',
   nav_games: 'Games', nav_daily: 'Daily', nav_invite: 'Invite', nav_board: 'Ranking',
   m3_title: '💎 Match-3 Duel',
   m3_desc: 'Drag gems to match 3 or more of the same shape. You have 60 seconds and 15 moves — get the highest score!',
@@ -39,6 +40,7 @@ I18N.en = {
   vf_hint: 'Swipe (or arrow keys) • draw a line from the edge into open space • creatures trapped in a small area die • time limit varies by level'
 };
 I18N.tr = {
+  freeze: '❄ Canavarlar dondu!',
   nav_games: 'Oyunlar', nav_daily: 'Günlük', nav_invite: 'Davet', nav_board: 'Sıralama',
   m3_title: '💎 Match-3 Düello',
   m3_desc: 'Taşları sürükle, 3 veya daha fazla aynı şekli eşleştir. 60 saniye ve 15 hamlen var, en yüksek skoru yap!',
@@ -76,6 +78,7 @@ I18N.tr = {
   vf_hint: 'Parmağını kaydır (veya ok tuşları) • Kenardan boşluğa çizgi çek • Küçük alanda sıkışan yaratık ölür • Süre bölüme göre değişir'
 };
 I18N.ru = {
+  freeze: '❄ Монстры заморожены!',
   nav_games: 'Игры', nav_daily: 'Награды', nav_invite: 'Друзья', nav_board: 'Рейтинг',
   m3_title: '💎 Три в ряд: Дуэль',
   m3_desc: 'Перетаскивай камни и собирай 3 и более одинаковых. У тебя 60 секунд и 15 ходов — набери максимум очков!',
@@ -113,6 +116,7 @@ I18N.ru = {
   vf_hint: 'Свайп (или стрелки) • проведи линию от края в свободное место • существа в небольшой области погибают • время зависит от уровня'
 };
 I18N.zh = {
+  freeze: '❄ 怪物被冻结！',
   nav_games: '游戏', nav_daily: '每日', nav_invite: '邀请', nav_board: '排行',
   m3_title: '💎 三消对决',
   m3_desc: '拖动宝石，连成3个或更多相同图形。你有60秒和15步，争取最高分！',
@@ -150,6 +154,7 @@ I18N.zh = {
   vf_hint: '滑动屏幕（或方向键） • 从边缘向空地画线 • 被困在小区域的怪物会死亡 • 每关时间不同'
 };
 I18N.ko = {
+  freeze: '❄ 몬스터 정지!',
   nav_games: '게임', nav_daily: '일일', nav_invite: '초대', nav_board: '순위',
   m3_title: '💎 매치-3 듀얼',
   m3_desc: '보석을 드래그해 같은 모양 3개 이상을 맞추세요. 60초와 15번의 이동으로 최고 점수에 도전하세요!',
@@ -187,6 +192,7 @@ I18N.ko = {
   vf_hint: '스와이프 (또는 방향키) • 가장자리에서 빈 공간으로 선 긋기 • 좁은 영역에 갇힌 크리처는 죽음 • 스테이지마다 시간 다름'
 };
 I18N.es = {
+  freeze: '❄ ¡Monstruos congelados!',
   nav_games: 'Juegos', nav_daily: 'Diario', nav_invite: 'Invitar', nav_board: 'Ranking',
   m3_title: '💎 Match-3 Duelo',
   m3_desc: 'Arrastra las gemas para unir 3 o más iguales. Tienes 60 segundos y 15 movimientos: ¡consigue la máxima puntuación!',
