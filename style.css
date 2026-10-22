@@ -81,3 +81,6 @@ main{flex:1;overflow-y:auto;padding:14px}
 
 html,body{overscroll-behavior:none}
 #game{touch-action:none;overscroll-behavior:none}
+
+body{position:fixed;inset:0;width:100%}
+#game,#game *{touch-action:none;-webkit-user-drag:none}

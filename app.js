@@ -434,6 +434,11 @@ $('#adBtn').onclick = () => {
 /* ---------- Telegram dikey kaydırma kilidi (oyun sırasında aşağı kaydırarak kapanmayı engeller) ---------- */
 function lockSwipes() { try { if (tg && tg.disableVerticalSwipes) tg.disableVerticalSwipes(); } catch (_) {} }
 function unlockSwipes() { /* kilit uygulama boyunca açık kalır; çıkış sol üstteki Telegram kapat butonuyla */ lockSwipes(); }
+setInterval(lockSwipes, 2500);                   // Telegram ayarı sıfırlarsa yeniden kilitle
+document.addEventListener('visibilitychange', lockSwipes);
+window.addEventListener('scroll', () => { if (window.scrollY) window.scrollTo(0, 0); }, { passive: true });
+/* Oyun ekranında her türlü sürükleme (yukarı/aşağı) sayfaya geçmesin */
+document.addEventListener('touchmove', e => { const g = document.getElementById('game'); if (g && !g.classList.contains('hidden') && g.contains(e.target) && e.cancelable) e.preventDefault(); }, { passive: false });
 lockSwipes();                                    // uygulama açılır açılmaz: aşağı kaydırarak kapatma/küçültme kapalı
 if (tg) { try { tg.onEvent('viewportChanged', lockSwipes); tg.onEvent('activated', lockSwipes); } catch (_) {} }
 /* Yedek (eski Telegram sürümleri): liste en üstteyken aşağı çekme hareketini engelle */
@@ -459,7 +464,7 @@ const ui = {
   hint: h => { $('#gHint').textContent = h; },
   /* Volfied: canlar bitince (5. bölümden itibaren) Devam Et / Bitir. need = izlenecek reklam sayısı (1 veya 2).
      Devam Et'e 15 sn içinde basılmazsa oyun biter. Basıldıktan sonra geri sayım durur. cb(true) = devam, cb(false) = bitir. */
-  cont: (need, cb) => {
+  cont: (need, hearts, cb) => {
     let left = 15, seen = 0, busy = false, over = false, timer = null;
     const done = ok => { if (over) return; over = true; clearInterval(timer); closeModal(); cb(ok); };
     const paint = (msg) => {
@@ -470,7 +475,7 @@ const ui = {
       $('#contBar').style.width = (left !== null ? left / 15 * 100 : 100) + '%';
       $('#contNote').textContent = msg || '';
     };
-    modal(`<h2>${tl('cont_title')}</h2><p>${tl(need > 1 ? 'cont_msg2' : 'cont_msg1')}</p>
+    modal(`<h2>${tl('cont_title')}</h2><p>${tl(need > 1 ? 'cont_msg2' : 'cont_msg1', { n: hearts })}</p>
       <div style="height:6px;border-radius:3px;background:rgba(255,255,255,.12);overflow:hidden;margin:10px 0"><div id="contBar" style="height:100%;width:100%;background:linear-gradient(90deg,#ff3b5c,#00d2ff);transition:width 1s linear"></div></div>
       <div id="contAd" class="muted"></div><div id="contNote" class="muted" style="color:#ff8a9a"></div>
       <button class="btn primary" id="contGo"></button><button class="btn" id="contFin">${tl('cont_fin')}</button>`);
@@ -519,6 +524,7 @@ window.startGame = function (kind) {
   quitGame(true);
   S.lives--; S.lastRegen = S.lives === MAX_LIVES - 1 ? Date.now() : S.lastRegen; save(); render();
   $('#game').classList.remove('hidden');
+  try { if (tg && tg.expand) tg.expand(); } catch (_) {}
   lockSwipes();   // oyun başladı: aşağı kaydırarak kapatma/küçültme kapalı
   $('#gTitle').textContent = kind === 'm3' ? '💎 Match-3' : '📐 Volfied';
   const cv = $('#cv');

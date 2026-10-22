@@ -1,16 +1,17 @@
 /* Volfied – 20 bölümlü uzay macerası (Canvas) */
 const Volfied = (() => {
   const GW = 40, GH = 56, CS = 12, W = GW * CS, H = GH * CS;
-  const TARGET = 0.7, FULL = 0.99, R_STD = 5, R_FULL = 8, STEP = 1000 / 60, TIME = 60000, MAXL = 3, NL = 20, TAU = 6.2832;
+  const TARGET = 0.7, FULL = 0.99, R_STD = 5, R_FULL = 8, STEP = 1000 / 60, TIME = 60000, MAXL = 3, MAXL_HI = 5, NL = 20, TAU = 6.2832;
   /* ---- 20 BÖLÜM AYARLARI (buradan değiştirilebilir) ---- */
   const R_HI = 25, R_LAST = 25;            // 11-20. bölümlerin her biri: 25 WRGP
   const FIRST_BONUS = 100, FINAL_BONUS = 500; // 10. bölüm (ilk periyot) bonusu / 20 bölüm bitince ekstra
   const FIRST_N = 10, CONT_FROM = 4;       // ilk periyot 10 bölüm; Devam Et/Bitir ekranı 5. bölümden (indeks 4) itibaren
+  const maxL = i => i >= FIRST_N ? MAXL_HI : MAXL;   // 1-10: 3 can, 11-20: 5 can
   const CONT_NEED = li => 1;   // devam için gereken reklam sayısı: tüm bölümlerde 1 (+1 can butonuyla aynı reklam akışı)
   /* Zorluk: 1-10 normal; 11-19 ≈2 kat (hız x1.4+, tepki x2, bekleme süreleri yarı); 20 ultra */
   const diffOf = i => i < FIRST_N ? { spd: 1, rate: 1, cd: 1, lead: 0 }
-    : i < NL - 1 ? { spd: 1.4 + (i - FIRST_N) * .025, rate: 2, cd: .5, lead: 0 }
-    : { spd: 1.8, rate: 3, cd: .35, lead: 7 };
+    : i < NL - 1 ? { spd: 1.3 + (i - FIRST_N) * .022, rate: 1.75, cd: .6, lead: 0 }
+    : { spd: 1.68, rate: 2.7, cd: .4, lead: 6 };
   /* Bölüm süresi: 1-10: 60 sn · 11-15: 90 sn · 16-19: 120 sn · 20: 180 sn */
   const timeOf = i => i >= FIRST_N ? Infinity : 60000;   // 11-20: süre sınırı yok (Infinity)
   const COL = { bounce: '#ff2d6f', wander: '#ffa726', snake: '#7cff4d', chase: '#ff5252', dash: '#c06bff', teleport: '#4df0ff' };
@@ -265,7 +266,7 @@ const Volfied = (() => {
       return e;
     }
     function startLevel(i) {
-      li = i; L = LV[i]; D = diffOf(i); firstShow = false; bg = makeBg(L, i);
+      li = i; L = LV[i]; D = diffOf(i); if (i === FIRST_N) lives = MAXL_HI; firstShow = false; bg = makeBg(L, i);
       dimBg = document.createElement('canvas'); dimBg.width = W; dimBg.height = H;
       const d = dimBg.getContext('2d'); d.drawImage(bg, 0, 0); d.fillStyle = L.br ? 'rgba(2,4,14,.46)' : 'rgba(2,4,14,.58)'; d.fillRect(0, 0, W, H);
       g.fill(0); fresh.fill(0);
@@ -424,9 +425,9 @@ const Volfied = (() => {
     function noLives(why) {
       if (li >= CONT_FROM && ui.cont) {
         state = 'cont'; dir = null;
-        return ui.cont(CONT_NEED(li), ok => {
+        return ui.cont(CONT_NEED(li), maxL(li), ok => {
           if (!alive || state !== 'cont') return;
-          if (ok) { lives = MAXL; startLevel(li); } else finish(false, why);   // reklam izlendi: aynı bölüm baştan, 3 canla, süre de baştan
+          if (ok) { lives = maxL(li); startLevel(li); } else finish(false, why);   // reklam izlendi: aynı bölüm baştan, 3 canla, süre de baştan
         });
       }
       return finish(false, why);
@@ -451,7 +452,7 @@ const Volfied = (() => {
       earned += lvlReward;
       bonus = unlimited() ? 0 : Math.ceil(timeLeft / 1000) * 10;
       score += bonus;
-      lives = Math.min(MAXL, lives + 1);
+      lives = Math.min(maxL(li), lives + 1);
       dir = null; hp('medium');
       if (li === FIRST_N - 1) { earned += FIRST_BONUS; firstShow = true; }   // ilk periyot bitti: bonus + tebrik, oyun 11. bölümle sürer
       if (li >= NL - 1) { earned += FINAL_BONUS; return finish(true, 'win'); }
@@ -678,8 +679,11 @@ const Volfied = (() => {
       for (const p of parts) { ctx.globalAlpha = Math.max(0, p.l / p.m); ctx.fillStyle = p.c; ctx.fillRect(p.x - p.s / 2, p.y - p.s / 2, p.s, p.s); }
       ctx.globalAlpha = 1;
       const px = (player.x + .5) * CS, py = (player.y + .5) * CS;
-      ctx.save(); ctx.shadowColor = '#fff'; ctx.shadowBlur = 16; ctx.fillStyle = state === 'pause' && ((T * 12) | 0) % 2 ? '#ff9a9a' : '#fff';
-      ctx.beginPath(); ctx.moveTo(px, py - 11); ctx.lineTo(px + 9, py); ctx.lineTo(px, py + 11); ctx.lineTo(px - 9, py); ctx.closePath(); ctx.fill(); ctx.restore();
+      ctx.save(); const hiLv = li >= FIRST_N;   // 11-20: siyah kenarlı oyuncu (ışıklı arka planda net seçilsin)
+      ctx.shadowColor = hiLv ? '#000' : '#fff'; ctx.shadowBlur = hiLv ? 6 : 16; ctx.fillStyle = state === 'pause' && ((T * 12) | 0) % 2 ? '#ff9a9a' : '#fff';
+      ctx.beginPath(); ctx.moveTo(px, py - 11); ctx.lineTo(px + 9, py); ctx.lineTo(px, py + 11); ctx.lineTo(px - 9, py); ctx.closePath();
+      if (hiLv) { ctx.lineJoin = 'round'; ctx.lineWidth = 4.5; ctx.strokeStyle = '#000'; ctx.stroke(); }
+      ctx.fill(); ctx.restore();
       ctx.textAlign = 'center'; ctx.font = 'bold 13px sans-serif';
       for (const t of texts) { ctx.globalAlpha = Math.min(1, t.l / 25); ctx.fillStyle = t.c; ctx.shadowColor = '#000'; ctx.shadowBlur = 6; ctx.fillText(t.s, Math.max(70, Math.min(W - 70, t.x)), t.y); }
       ctx.globalAlpha = 1; ctx.shadowBlur = 0;
@@ -731,22 +735,23 @@ const Volfied = (() => {
     }
 
     /* ---------- Girdi: kaydırma + ok tuşları ---------- */
-    let sp = null;
-    cv.onpointerdown = e => { sp = { x: e.clientX, y: e.clientY }; try { cv.setPointerCapture(e.pointerId); } catch (_) {} };
+    let sp = null, moved = false, tapT = 0;
+    cv.onpointerdown = e => { moved = false; tapT = performance.now(); sp = { x: e.clientX, y: e.clientY }; try { cv.setPointerCapture(e.pointerId); } catch (_) {} };
     cv.onpointermove = e => {
       if (!sp) return;
       const dx = e.clientX - sp.x, dy = e.clientY - sp.y;
-      if (Math.hypot(dx, dy) > 14) { setDir(dx, dy); sp = { x: e.clientX, y: e.clientY }; }
+      if (Math.hypot(dx, dy) > 14) { moved = true; setDir(dx, dy); sp = { x: e.clientX, y: e.clientY }; }
     };
-    cv.onpointerup = cv.onpointercancel = () => { sp = null; };
+    cv.onpointerup = () => { if (sp && !moved && performance.now() - tapT < 400 && state === 'play') dir = null; sp = null; };   // sadece dokunma = cisim olduğu yerde durur
+    cv.onpointercancel = () => { sp = null; };
     const keyH = e => {
       const m = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[e.key];
-      if (m) { e.preventDefault(); setDir(m[0], m[1]); }
+      if (m) { e.preventDefault(); setDir(m[0], m[1]); } else if (e.key === ' ') { e.preventDefault(); dir = null; }
     };
     window.addEventListener('keydown', keyH);
 
     startLevel(0);
-    ui.hint(tl('vf_hint'));
+    ui.hint(tl('vf_hint') + ' • ' + tl('vf_stop'));
     raf = requestAnimationFrame(loop);
     return { stop() {
       alive = false; cancelAnimationFrame(raf);
