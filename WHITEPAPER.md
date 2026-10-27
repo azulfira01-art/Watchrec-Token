@@ -17,7 +17,7 @@ WatchRec ($WREC) is a Web3 community-driven ecosystem powered by the BNB Smart C
    * Allocated for Telegram Mini App players, community quest completions, leaderboard top-scorers, and referral incentives to drive ecosystem engagement.
 
 2. **Locked Treasury & Development (23.08% - 300,000,000 WREC)**
-   * Reserved for long-term ecosystem stability and platform expansion. **This allocation remains strictly locked until March 2028.**
+   * Reserved for long-term ecosystem stability and platform expansion. **This allocation remains strictly locked until November 2028.**
 
 3. **Pre-sale / Public Sale (10% - 130,000,000 WREC)**
    * Dedicated to early project supporters, initial seed liquidity funding, and public community pre-sale distribution.
@@ -40,25 +40,29 @@ WatchRec ($WREC) is a Web3 community-driven ecosystem powered by the BNB Smart C
 ## 4. Roadmap
 
 ### Phase 1: Foundation & Launch (Current)
+
 * Smart Contract Deployment on BNB Smart Chain.
 * GitHub Repository setup & Whitepaper release.
 * Airdrop web portal & Telegram Mini App integration.
 * BscScan Token Info Verification & Logo Submission.
 
 ### Phase 2: Community & Arcade Expansion
+
 * In-app arcade mechanics release (Match-3, Leaderboard sync).
 * Initial Marketing & KOL Outreach.
 * Community quests & leaderboard tracking active.
 
-### Phase 3: Airdrop Distribution & Exchange Listings (July 2027 – November 2027)
-* **Official Airdrop Token Distribution** for players and community members (Estimated Window: July–November 2027).
-* **Exchange Listings & DEX Activation** (PancakeSwap DEX and CEX Listings estimated window: July–November 2027).
+### Phase 3: Airdrop Distribution & Exchange Listings (April 2028 – July 2028)
+
+* **Official Airdrop Token Distribution** for players and community members (Estimated Window: April 2028 – July 2028).
+* **Exchange Listings & DEX Activation** (PancakeSwap DEX and CEX Listings estimated window: April 2028 – July 2028).
 * CoinGecko & CoinMarketCap tracking integration.
 * In-game point conversion to on-chain $WREC tokens.
 
-### Phase 4: Long-Term Scaling (2028 & Beyond)
+### Phase 4: Long-Term Scaling (Late 2028 & Beyond)
+
 * Extended Staking & Utility options.
-* Treasury Unlock execution (**March 2028**) for next-gen ecosystem development.
+* Treasury Unlock execution (**November 2028**) for next-gen ecosystem development.
 
 ## 5. Disclaimer
 
