@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="tr" data-lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WatchRec ($WREC) — BNB Smart Chain'de Neon Oyun Ekosistemi</title>
+<meta name="description" content="WatchRec ($WREC) — BNB Smart Chain üzerinde Telegram Mini App arcade oyunu ve %75 gelir paylaşımlı, sürdürülebilir 3 aylık airdrop modeli ve piyasadan alım (buy-back) ile dağıtım.">
+<link rel="icon" href="wrec-logo.webp">
+<style>
+:root{
+  --bg:#04060c;--bg2:#07101f;--neon:#4fd3ff;--blue:#2f8dff;--ice:#eaf6ff;
+  --ink:#f2faff;--muted:#9db6cc;--dim:#6f8ba6;--ok:#37e0a0;
+  --panel:rgba(255,255,255,.055);--line:rgba(143,214,255,.18);
+  --grad:linear-gradient(100deg,#2f8dff,#63d9ff);
+  --radius:16px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;scroll-padding-top:80px}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  background:var(--bg);color:var(--ink);line-height:1.6;overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+img{max-width:100%;display:block}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none}
+.wrap{width:min(1180px,92vw);margin:0 auto}
+.mono{font-family:ui-monospace,Consolas,monospace}
+.grad{background:linear-gradient(100deg,#fff 10%,#7fd8ff 55%,#2f8dff 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.muted{color:var(--muted)}
+
+/* ---------- background layers ---------- */
+.bgfx{position:fixed;inset:0;z-index:-2;background:
+  radial-gradient(900px 600px at 15% 8%,rgba(47,141,255,.12),transparent 60%),
+  radial-gradient(800px 520px at 82% 12%,rgba(47,141,255,.16),transparent 62%),
+  radial-gradient(700px 500px at 50% 105%,rgba(79,211,255,.10),transparent 60%),
+  linear-gradient(160deg,#04060c,#07101f 45%,#03050a);}
+.stars{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.55;
+  background-image:
+    radial-gradient(1.4px 1.4px at 20px 30px,#cfe9ff 50%,transparent 51%),
+    radial-gradient(1.2px 1.2px at 140px 120px,#9fd6ff 50%,transparent 51%),
+    radial-gradient(1px 1px at 260px 60px,#eaf6ff 50%,transparent 51%),
+    radial-gradient(1.6px 1.6px at 320px 200px,#bfe6ff 50%,transparent 51%),
+    radial-gradient(1px 1px at 90px 240px,#cfe9ff 50%,transparent 51%);
+  background-size:380px 300px;background-repeat:repeat;}
+.stars::after{content:"";position:absolute;inset:0;
+  background:radial-gradient(60% 45% at 50% 0%,rgba(79,211,255,.10),transparent 70%);}
+
+/* ---------- header ---------- */
+header{position:fixed;top:0;left:0;right:0;z-index:50;
+  background:rgba(5,10,20,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(105,200,255,.16);transition:background .3s}
+header.solid{background:rgba(4,8,16,.94)}
+.hd{display:flex;align-items:center;gap:18px;height:70px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:-.2px}
+.brand img{width:34px;height:34px;filter:drop-shadow(0 0 10px rgba(79,211,255,.75))}
+.brand small{color:var(--neon);font-size:12px;font-weight:800;letter-spacing:.5px}
+nav.links{display:flex;gap:26px;margin-left:auto}
+nav.links a{font-size:13.5px;color:#a9c6e0;position:relative;padding:6px 0;transition:color .2s}
+nav.links a::after{content:"";position:absolute;left:0;bottom:0;height:2px;width:0;background:var(--grad);transition:width .25s;border-radius:2px}
+nav.links a:hover{color:#fff}
+nav.links a:hover::after{width:100%}
+.hd-right{display:flex;align-items:center;gap:10px;margin-left:auto}
+nav.links+.hd-right{margin-left:0}
+.btn-nav{display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:10px;
+  background:var(--grad);color:#04121f;font-weight:800;font-size:13px;
+  box-shadow:0 6px 22px rgba(47,141,255,.35);transition:transform .2s,box-shadow .2s}
+.btn-nav:hover{transform:translateY(-1px);box-shadow:0 10px 28px rgba(79,211,255,.5)}
+
+/* language picker */
+.lang{position:relative}
+.lang-btn{display:flex;align-items:center;gap:7px;padding:9px 12px;border-radius:10px;
+  border:1px solid var(--line);background:rgba(255,255,255,.04);font-size:12.5px;font-weight:700;color:#cfe6f7}
+.lang-btn:hover{border-color:rgba(79,211,255,.55);color:#fff}
+.lang-btn .flag{font-size:15px;line-height:1}
+.lang-menu{position:absolute;top:calc(100% + 10px);right:0;min-width:186px;display:none;
+  background:#081120;border:1px solid rgba(79,211,255,.22);border-radius:12px;padding:6px;
+  box-shadow:0 20px 50px rgba(0,0,0,.65);z-index:60}
+.lang-menu.open{display:block;animation:fade .18s ease}
+.lang-menu button{display:flex;align-items:center;gap:10px;width:100%;padding:9px 10px;border-radius:8px;
+  font-size:13px;color:#c3dcf0;text-align:left}
+.lang-menu button:hover{background:rgba(79,211,255,.1);color:#fff}
+.lang-menu button[aria-selected="true"]{background:rgba(79,211,255,.14);color:#7fe1ff;font-weight:700}
+@keyframes fade{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
+.burger{display:none;width:40px;height:40px;border:1px solid var(--line);border-radius:10px;
+  align-items:center;justify-content:center;flex-direction:column;gap:4px}
+.burger span{width:16px;height:2px;background:#cfe6f7;border-radius:2px;transition:.25s}
+.burger.on span:nth-child(1){transform:translateY(6px) rotate(45deg)}
+.burger.on span:nth-child(2){opacity:0}
+.burger.on span:nth-child(3){transform:translateY(-6px) rotate(-45deg)}
+
+/* ---------- buttons ---------- */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:14px 26px;border-radius:12px;font-weight:800;font-size:14.5px;
+  transition:transform .2s,box-shadow .2s,background .2s;white-space:nowrap}
+.btn-primary{background:var(--grad);color:#04121f;box-shadow:0 8px 28px rgba(47,141,255,.4)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 38px rgba(79,211,255,.55)}
+.btn-ghost{border:1px solid rgba(143,214,255,.5);color:#dff4ff;background:rgba(255,255,255,.03)}
+.btn-ghost:hover{background:rgba(79,211,255,.1);border-color:var(--neon);transform:translateY(-2px)}
+.btn-sm{padding:10px 16px;font-size:12.5px;border-radius:10px}
+
+/* ---------- generic section ---------- */
+section{position:relative;padding:88px 0}
+.sec-head{max-width:760px;margin-bottom:44px}
+.eyebrow{font-size:11.5px;letter-spacing:.28em;text-transform:uppercase;color:var(--neon);font-weight:800;display:inline-block;margin-bottom:12px}
+h2{font-size:clamp(26px,3.4vw,42px);line-height:1.14;letter-spacing:-1.2px;font-weight:800;margin-bottom:14px}
+.sec-head p{color:var(--muted);font-size:15px}
+h3{font-size:clamp(16px,1.7vw,19px);font-weight:800;letter-spacing:-.3px;margin-bottom:8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+  padding:26px;position:relative;overflow:hidden;transition:transform .3s,border-color .3s,box-shadow .3s}
+.card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:var(--grad);opacity:.85}
+.card:hover{transform:translateY(-4px);border-color:rgba(79,211,255,.45);box-shadow:0 20px 46px rgba(0,0,0,.5)}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+
+/* ---------- hero ---------- */
+.hero{padding:132px 0 72px;position:relative}
+.hero-grid{display:grid;grid-template-columns:250px 1fr 300px;gap:34px;align-items:center}
+.orb{position:relative;width:230px;height:230px;display:grid;place-items:center}
+.orb .halo{position:absolute;inset:-30px;border-radius:50%;
+  background:radial-gradient(circle,rgba(79,211,255,.45),rgba(47,141,255,.1) 60%,transparent 72%);
+  filter:blur(18px);animation:pulse 5s ease-in-out infinite}
+.orb .ring{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(79,184,255,.45)}
+.orb .ring.r2{inset:-16px;border-style:dashed;border-color:rgba(79,184,255,.25);animation:spin 28s linear infinite}
+.orb .ring.r3{inset:14px;border-color:rgba(79,184,255,.2)}
+.orb img{width:126px;height:126px;position:relative;z-index:2;
+  filter:drop-shadow(0 0 22px rgba(79,211,255,.85));animation:float 6s ease-in-out infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes float{0%,100%{transform:translateY(-4px)}50%{transform:translateY(6px)}}
+@keyframes pulse{0%,100%{opacity:.75;transform:scale(1)}50%{opacity:1;transform:scale(1.05)}}
+
+.hero h1{font-size:clamp(38px,5.2vw,66px);line-height:1.02;letter-spacing:-2.4px;font-weight:800;margin-bottom:18px}
+.hero h1 span{display:block;color:var(--neon)}
+.hero .lead{color:#a9c0d4;font-size:15.5px;max-width:520px;margin-bottom:26px}
+.hero .lead b{color:#dff4ff;font-weight:700}
+.hero-btns{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+
+.ca-box{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;
+  background:rgba(255,255,255,.05);border:1px solid rgba(79,211,255,.26);max-width:430px}
+.ca-box .ca-lbl{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);display:block;line-height:1.2}
+.ca-box code{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;color:#a9d8f0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block}
+.copy-btn{margin-left:auto;flex:none;font-size:11px;font-weight:800;color:var(--neon);
+  padding:6px 10px;border-radius:7px;background:rgba(79,211,255,.1);transition:.2s}
+.copy-btn:hover{background:rgba(79,211,255,.22);color:#fff}
+.copy-btn.done{color:#04121f;background:var(--ok)}
+
+/* tokenomics mini panel in hero */
+.mini-panel{background:rgba(255,255,255,.055);border:1px solid rgba(143,214,255,.22);
+  border-radius:18px;padding:20px;backdrop-filter:blur(8px)}
+.mini-panel h3{font-size:14px;margin-bottom:2px}
+.mini-panel .sub{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:14px}
+.donut{width:150px;height:150px;margin:0 auto 14px;position:relative}
+.donut svg{transform:rotate(-90deg)}
+.donut .mid{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.donut .mid b{font-size:21px;font-weight:800;display:block;line-height:1}
+.donut .mid small{font-size:9px;letter-spacing:.14em;color:var(--dim);text-transform:uppercase}
+.legend{list-style:none;font-size:10.5px;display:grid;gap:6px}
+.legend li{display:flex;align-items:center;gap:7px;color:#b9cfe2}
+.legend i{width:8px;height:8px;border-radius:2px;flex:none}
+.legend span{margin-left:auto;color:#eaf6ff;font-weight:700;font-variant-numeric:tabular-nums}
+.lock-tag{margin-top:14px;padding-top:12px;border-top:1px solid rgba(79,211,255,.2);
+  font-size:10px;letter-spacing:.1em;color:var(--neon);font-weight:800;text-transform:uppercase}
+
+/* stats strip */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:56px}
+.stat{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;position:relative}
+.stat::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;border-radius:2px;background:var(--grad);opacity:.8}
+.stat small{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);display:block;margin-bottom:6px}
+.stat b{font-size:clamp(17px,2vw,22px);font-weight:800;letter-spacing:-.5px}
+.stat b.hi{color:var(--neon)}
+
+/* ---------- notice / emphasis ---------- */
+.notice{position:relative;margin-top:34px;border-radius:16px;padding:24px 26px;
+  background:linear-gradient(100deg,rgba(79,211,255,.12),rgba(47,141,255,.05) 55%,rgba(255,255,255,.02));
+  border:1px solid rgba(79,211,255,.42);box-shadow:0 0 0 1px rgba(79,211,255,.08) inset,0 18px 46px rgba(0,0,0,.45)}
+.notice::after{content:"";position:absolute;left:0;top:18px;bottom:18px;width:3px;border-radius:3px;background:var(--grad)}
+.notice .nt{display:flex;align-items:center;gap:10px;font-weight:800;font-size:15.5px;margin-bottom:8px;padding-left:14px}
+.notice .nt .ico{width:26px;height:26px;flex:none;border-radius:8px;display:grid;place-items:center;
+  background:rgba(79,211,255,.16);color:var(--neon);font-size:14px}
+.notice p{color:#b6cee0;font-size:14px;padding-left:14px}
+.notice p b{color:#eaf6ff}
+.notice .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;padding-left:14px}
+.chip{font-size:11px;font-weight:800;padding:6px 11px;border-radius:999px;
+  background:rgba(79,211,255,.12);border:1px solid rgba(79,211,255,.3);color:#9fe0ff}
+.chip.warn{background:rgba(255,176,66,.1);border-color:rgba(255,176,66,.35);color:#ffce85}
+/* ---------- tokenomics table ---------- */
+.tok-grid{display:grid;grid-template-columns:330px 1fr;gap:34px;align-items:start}
+.tok-donut{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:26px;text-align:center;position:sticky;top:96px}
+.tok-donut .donut{width:210px;height:210px}
+.tok-donut .mid b{font-size:26px}
+.tok-donut .total{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-top:6px}
+.tok-rows{display:grid;gap:10px}
+.tok-row{display:grid;grid-template-columns:auto 1fr auto auto;gap:14px;align-items:center;
+  padding:15px 18px;border-radius:12px;background:rgba(255,255,255,.035);
+  border:1px solid rgba(143,214,255,.13);transition:.25s}
+.tok-row:hover{background:rgba(79,211,255,.08);border-color:rgba(79,211,255,.4);transform:translateX(3px)}
+.tok-row .dot{width:11px;height:11px;border-radius:3px;flex:none}
+.tok-row .name{font-size:13.5px;font-weight:700}
+.tok-row .name em{display:block;font-style:normal;font-size:11px;color:var(--dim);font-weight:500}
+.tok-row .amt{font-size:12px;color:#9fc0d8;font-variant-numeric:tabular-nums}
+.tok-row .pct{font-size:15px;font-weight:800;min-width:62px;text-align:right;color:#eaf6ff;font-variant-numeric:tabular-nums}
+.tok-row.locked .pct{color:#ffce85}
+.tok-row .bar{grid-column:1/-1;height:3px;border-radius:3px;background:rgba(255,255,255,.07);overflow:hidden}
+.tok-row .bar i{display:block;height:100%;border-radius:3px}
+.tok-note{margin-top:18px;font-size:12px;color:var(--dim);border-left:2px solid rgba(255,176,66,.5);padding-left:12px;line-height:1.7}
+
+/* ---------- roadmap ---------- */
+.tl{position:relative;margin-top:20px}
+.tl::before{content:"";position:absolute;left:11px;top:6px;bottom:6px;width:2px;
+  background:linear-gradient(180deg,rgba(79,211,255,.9),rgba(79,211,255,.35) 55%,rgba(79,211,255,.06))}
+.tl-item{position:relative;padding:0 0 34px 46px}
+.tl-item:last-child{padding-bottom:0}
+.tl-item .node{position:absolute;left:0;top:4px;width:24px;height:24px;border-radius:50%;
+  background:#0a1626;border:2px solid rgba(79,211,255,.45);display:grid;place-items:center;
+  font-size:10px;font-weight:800;color:var(--neon);z-index:2;transition:.3s}
+.tl-item.done .node{background:var(--neon);color:#04121f;border-color:var(--neon);box-shadow:0 0 16px rgba(79,211,255,.7)}
+.tl-item.active .node{border-color:var(--neon);box-shadow:0 0 0 5px rgba(79,211,255,.12)}
+.tl-item.active .node::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--neon);animation:pulse 2s infinite}
+.tl-item .body{background:rgba(255,255,255,.04);border:1px solid rgba(143,214,255,.14);
+  border-radius:14px;padding:18px 20px;transition:.3s}
+.tl-item:hover .body{border-color:rgba(79,211,255,.4);background:rgba(79,211,255,.06)}
+.tl-item.reveal{opacity:0;transform:translateY(18px)}
+.tl-item.reveal.in{opacity:1;transform:none;transition:opacity .6s,transform .6s}
+.tl-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+.tl-head b{font-size:15px;font-weight:800;letter-spacing:-.2px}
+.tl-head .when{font-size:11px;color:var(--dim);font-weight:700;letter-spacing:.06em}
+.badge{font-size:9.5px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;
+  padding:4px 9px;border-radius:999px;margin-left:auto}
+.badge.done{background:rgba(55,224,160,.14);color:#5ff0b8;border:1px solid rgba(55,224,160,.34)}
+.badge.act{background:rgba(79,211,255,.14);color:#7fe1ff;border:1px solid rgba(79,211,255,.4)}
+.badge.next{background:rgba(255,255,255,.06);color:#a9c6e0;border:1px solid rgba(255,255,255,.12)}
+.tl-item p{font-size:13.5px;color:#a9c0d4}
+.tl-item p b{color:#eaf6ff}
+
+/* ---------- revenue model ---------- */
+.rev{position:relative;border-radius:20px;padding:38px;overflow:hidden;
+  background:
+    radial-gradient(600px 320px at 88% 0%,rgba(79,211,255,.18),transparent 65%),
+    linear-gradient(120deg,rgba(47,141,255,.13),rgba(255,255,255,.02));
+  border:1px solid rgba(79,211,255,.34);box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.rev-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:36px;align-items:center}
+.rev h2{margin-bottom:12px}
+.rev p{color:#b6cee0;font-size:14.5px;margin-bottom:12px}
+.rev p b{color:#eaf6ff}
+.pct-hero{text-align:center;position:relative}
+.pct-hero .num{font-size:clamp(72px,10vw,124px);font-weight:800;line-height:.85;letter-spacing:-6px;
+  background:linear-gradient(160deg,#fff,#7fd8ff 60%,#2f8dff);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 26px rgba(79,211,255,.45))}
+.pct-hero .cap{font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;color:#9fe0ff;font-weight:800;margin-top:6px}
+.cycle{display:flex;align-items:center;gap:8px;justify-content:center;margin-top:18px;flex-wrap:wrap}
+.cycle span{font-size:11px;font-weight:700;padding:6px 11px;border-radius:999px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(143,214,255,.2);color:#c8e2f4}
+.cycle i{color:rgba(79,211,255,.6);font-style:normal;font-size:12px}
+.rev-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:30px}
+.step{background:rgba(4,10,20,.5);border:1px solid rgba(143,214,255,.16);border-radius:14px;padding:18px}
+.step b{display:block;font-size:12px;color:var(--neon);letter-spacing:.14em;text-transform:uppercase;margin-bottom:6px}
+.step p{font-size:12.5px;color:#a9c0d4;margin:0}
+
+/* ------ buy-back kartı --- */
+.buyback{margin-top:22px;border-radius:18px;padding:26px 28px;position:relative;overflow:hidden;
+  background:linear-gradient(110deg,rgba(79,211,255,.09),rgba(255,255,255,.022) 60%,rgba(47,141,255,.07));
+  border:1px solid rgba(143,214,255,.26)}
+.buyback::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--grad);border-radius:3px}
+.bb-head{display:flex;gap:14px;align-items:flex-start;margin-bottom:14px}
+.bb-ico{width:38px;height:38px;flex:none;border-radius:11px;display:grid;place-items:center;font-size:18px;
+  background:rgba(79,211,255,.14);border:1px solid rgba(79,211,255,.3);color:var(--neon)}
+.bb-head h3{font-size:17px;font-weight:800;letter-spacing:-.2px;margin-bottom:3px}
+.bb-head p{font-size:12px;color:var(--dim);margin:0;letter-spacing:.02em}
+.buyback p{color:#b6cee0;font-size:14px;line-height:1.75}
+.buyback p b{color:#eaf6ff}
+.bb-flow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:18px 0 14px}
+.bb-flow span{font-size:11px;font-weight:700;padding:7px 12px;border-radius:999px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(143,214,255,.22);color:#c8e2f4}
+.bb-flow i{color:rgba(79,211,255,.65);font-style:normal;font-size:12px}
+.bb-note{border-left:2px solid rgba(255,176,66,.55);padding-left:12px;font-size:12px!important;color:var(--muted)!important}
+
+/* ---------- FAQ ---------- */
+.faq{display:grid;gap:10px;max-width:860px}
+details{background:rgba(255,255,255,.035);border:1px solid rgba(143,214,255,.14);border-radius:12px;overflow:hidden;transition:.25s}
+details[open]{border-color:rgba(79,211,255,.38);background:rgba(79,211,255,.05)}
+summary{padding:16px 18px;font-size:14px;font-weight:700;cursor:pointer;list-style:none;
+  display:flex;align-items:center;gap:10px}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";margin-left:auto;color:var(--neon);font-size:18px;font-weight:800;transition:.25s}
+details[open] summary::after{content:"–"}
+details p{padding:0 18px 16px;font-size:13.5px;color:#a9c0d4}
+details p b{color:#eaf6ff}
+/* ---------- footer ---------- */
+footer{padding:60px 0 34px;border-top:1px solid rgba(79,211,255,.14);margin-top:40px;background:rgba(4,8,16,.55)}
+.foot-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:34px;margin-bottom:34px}
+.foot-brand p{font-size:12.5px;color:var(--dim);margin:12px 0 0;max-width:300px;line-height:1.75}
+.foot-brand .brand img{width:30px;height:30px}
+footer h4{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--neon);margin-bottom:14px;font-weight:800}
+footer ul{list-style:none;display:grid;gap:9px}
+footer ul a,footer ul span{font-size:13px;color:#a9c0d4;transition:.2s;display:inline-flex;align-items:center;gap:7px}
+footer ul a:hover{color:#fff;transform:translateX(2px)}
+.verify{margin-top:6px;background:rgba(255,255,255,.04);border:1px solid rgba(143,214,255,.16);
+  border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.verify .vi{width:30px;height:30px;flex:none;border-radius:9px;display:grid;place-items:center;
+  background:rgba(55,224,160,.12);color:#5ff0b8;font-size:14px}
+.verify small{font-size:9.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);display:block}
+.verify code{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;color:#a9d8f0;word-break:break-all}
+.foot-bottom{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;
+  padding-top:20px;border-top:1px solid rgba(79,211,255,.1);font-size:11.5px;color:var(--dim)}
+.foot-bottom a{color:#7fd8ff}
+.disclaimer{font-size:10.5px;color:#5f7893;line-height:1.7;margin-top:14px;max-width:900px}
+
+/* ---------- toast ---------- */
+.toast{position:fixed;left:50%;bottom:28px;transform:translate(-50%,20px);z-index:99;
+  background:#0a1a2e;border:1px solid rgba(79,211,255,.5);color:#dff4ff;font-size:12.5px;font-weight:700;
+  padding:11px 20px;border-radius:999px;box-shadow:0 14px 40px rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:.3s}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- responsive ---------- */
+@media(max-width:1080px){
+  .hero-grid{grid-template-columns:1fr 300px;gap:26px}
+  .orb{display:none}
+  .tok-grid{grid-template-columns:280px 1fr}
+}
+@media(max-width:900px){
+  nav.links{display:none}
+  .burger{display:flex}
+  nav.links.open{display:flex;position:absolute;top:70px;left:0;right:0;flex-direction:column;gap:0;
+    background:#081120;border-bottom:1px solid rgba(79,211,255,.16);padding:8px 20px 14px;margin:0}
+  nav.links.open a{padding:12px 2px;border-bottom:1px solid rgba(255,255,255,.04)}
+  .btn-nav{display:none}
+  .hero-grid{grid-template-columns:1fr}
+  .mini-panel{max-width:340px;margin:0 auto}
+  .grid3{grid-template-columns:1fr}
+  .stats{grid-template-columns:repeat(2,1fr)}
+  .tok-grid{grid-template-columns:1fr}
+  .tok-donut{position:static;max-width:340px;margin:0 auto 8px}
+  .rev-grid{grid-template-columns:1fr;gap:22px}
+  .rev-steps{grid-template-columns:1fr}
+  .foot-grid{grid-template-columns:1fr 1fr}
+  .foot-brand{grid-column:1/-1}
+}
+@media(max-width:620px){
+  section{padding:62px 0}
+  .hero{padding:112px 0 52px}
+  .hd{gap:10px}
+  .brand small{display:none}
+  .stats{grid-template-columns:1fr 1fr;gap:10px}
+  .stat{padding:14px}
+  .rev{padding:24px 20px}
+  .buyback{padding:20px 18px}
+  .tok-row{grid-template-columns:auto 1fr auto;gap:10px}
+  .tok-row .amt{display:none}
+  .hero-btns .btn{flex:1 1 100%}
+  .foot-grid{grid-template-columns:1fr}
+  .lang-btn .lbl{display:none}
+  .lang-menu{right:-6px}
+  .notice{padding:18px}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  html{scroll-behavior:auto}
+}
+
+/* ===== WHITEPAPER OVERLAY ===== */
+body.wp-lock{overflow:hidden}
+.wp-overlay{position:fixed;inset:0;z-index:9500;overflow-y:auto;-webkit-overflow-scrolling:touch;display:none;
+  background:radial-gradient(circle at 50% -10%,#0b1c33 0%,#050a14 52%,#02040a 100%)}
+.wp-overlay.open{display:block;animation:wpfade .22s ease}
+@keyframes wpfade{from{opacity:0}to{opacity:1}}
+.wp-bar{position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:12px;padding:12px 18px;
+  background:rgba(6,11,21,.88);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+  border-bottom:1px solid rgba(105,200,255,.22)}
+.wp-bar img{width:34px;height:34px;border-radius:50%;flex:0 0 auto}
+.wp-bar b{color:#eaf6ff;font-size:15px;letter-spacing:.2px}
+.wp-bar span.wp-tag{color:#6f8ba6;font-size:11.5px;letter-spacing:1.4px}
+.wp-x{margin-left:auto;display:inline-flex;align-items:center;gap:7px;cursor:pointer;
+  background:rgba(255,255,255,.05);border:1px solid rgba(140,210,255,.3);color:#cfeeff;
+  font:inherit;font-size:13px;font-weight:600;padding:8px 14px;border-radius:999px}
+.wp-x:hover{background:rgba(95,200,255,.16);border-color:rgba(140,210,255,.6)}
+.wp-doc{max-width:880px;margin:0 auto;padding:40px 22px 96px;color:#b9cee0;line-height:1.78;font-size:15.5px}
+.wp-kicker{color:#4fd3ff;font-size:11.5px;letter-spacing:2.4px;margin:0 0 10px;text-transform:uppercase}
+.wp-doc h1{color:#f4fbff;font-size:clamp(26px,4vw,38px);line-height:1.2;margin:0 0 14px;letter-spacing:-.6px}
+.wp-doc h3{color:#eaf6ff;font-size:18.5px;margin:34px 0 10px;padding-left:12px;border-left:3px solid #3fa9ff}
+.wp-doc p{margin:0 0 12px}
+.wp-doc ul{margin:0 0 14px;padding-left:20px}
+.wp-doc li{margin:0 0 8px}
+.wp-doc b{color:#e2f3ff}
+.wp-tbl{width:100%;border-collapse:collapse;font-size:14px;margin:8px 0 14px}
+.wp-tbl th{color:#7f9db8;font-size:11.5px;letter-spacing:1.2px;text-transform:uppercase;font-weight:600}
+.wp-tbl th,.wp-tbl td{padding:9px 10px;border-bottom:1px solid rgba(110,160,210,.18);text-align:left;vertical-align:top}
+.wp-tbl td:nth-child(2),.wp-tbl td:nth-child(3),.wp-tbl th:nth-child(2),.wp-tbl th:nth-child(3){text-align:right;white-space:nowrap}
+.wp-tbl tr:last-child td{border-bottom:none;color:#eaf6ff;font-weight:700}
+.wp-card{border:1px solid rgba(95,200,255,.25);background:linear-gradient(180deg,rgba(30,60,100,.34),rgba(12,24,44,.34));
+  border-radius:16px;padding:16px 20px;margin:18px 0}
+.wp-card p:last-child{margin:0}
+.wp-link{color:#8fdcff;text-decoration:none;border-bottom:1px dotted rgba(143,220,255,.5)}
+.wp-toc{display:flex;flex-wrap:wrap;gap:8px;margin:20px 0 8px}
+.wp-toc a{font-size:12.5px;color:#bdeaff;text-decoration:none;padding:7px 13px;border-radius:999px;
+  border:1px solid rgba(110,180,235,.28);background:rgba(255,255,255,.04)}
+.wp-toc a:hover{border-color:rgba(140,210,255,.6);background:rgba(95,200,255,.12)}
+.wp-top{position:fixed;right:18px;bottom:18px;z-index:4}
+@media(max-width:640px){.wp-doc{font-size:15px;padding:28px 16px 90px}.wp-bar span.wp-tag{display:none}}
+
+</style>
+</head>
+<body>
+<div class="bgfx"></div>
+<div class="stars"></div>
+<header id="hd">
+  <div class="wrap hd">
+    <a href="#top" class="brand">
+      <img src="wrec-logo.webp" alt="WatchRec logo" width="34" height="34">
+      <span>WatchRec</span><small>$WREC</small>
+    </a>
+    <nav class="links" id="nav">
+      <a href="#tokenomics" data-i18n="nav.tok">Tokenomics</a>
+      <a href="#roadmap" data-i18n="nav.road">Yol Haritası</a>
+      <a href="#odul" data-i18n="nav.rev">Ödül Modeli</a>
+      <a href="#sss" data-i18n="nav.faq">SSS</a>
+    </nav>
+    <div class="hd-right">
+      <div class="lang" id="lang">
+        <button class="lang-btn" id="langBtn" aria-haspopup="listbox" aria-expanded="false">
+          <span class="flag" id="langFlag">🇹🇷</span><span class="lbl" id="langLbl">TR</span>
+        </button>
+        <div class="lang-menu" id="langMenu" role="listbox"></div>
+      </div>
+      <a class="btn-nav" href="https://t.me/WatchRecGameBot" target="_blank" rel="noopener" data-i18n="nav.play">Oyunu Aç</a>
+      <button class="burger" id="burger" aria-label="Menü"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+<section class="hero">
+  <div class="wrap">
+    <div class="hero-grid">
+      <div class="orb" aria-hidden="true">
+        <div class="halo"></div><div class="ring r2"></div><div class="ring"></div><div class="ring r3"></div>
+        <img src="wrec-logo.webp" alt="" width="176" height="176">
+      </div>
+
+      <div>
+        <span class="eyebrow" data-i18n="hero.tag">BSC · NEON OYUN EKOSİSTEMİ</span>
+        <h1><span data-i18n="hero.h1a">BNB Chain'de</span><span class="accent" data-i18n="hero.h1b">oyna, kazan.</span></h1>
+        <p class="lead" data-i18n="hero.lead">WatchRec — Telegram Mini App arcade oyunu ve %75 gelir paylaşımlı, 3 aylık döngüye dayanan airdrop modeliyle çalışan BEP-20 tokenı $WREC.</p>
+        <div class="hero-btns">
+          <a class="btn btn-primary" href="https://t.me/WatchRecGameBot" target="_blank" rel="noopener">
+            <span data-i18n="hero.cta1">Telegram Oyunu Oyna</span><span aria-hidden="true">→</span>
+          </a>
+          <button class="btn btn-ghost" type="button" id="wpOpen" data-i18n="hero.cta2">Whitepaper</button>
+        </div>
+        <div class="ca-box">
+          <div style="min-width:0">
+            <span class="ca-lbl" data-i18n="hero.ca">Kontrat Adresi · BEP-20</span>
+            <code id="caText">0x38eb8b7C8E1305fcc041E5e8E352fBB05F603Afb</code>
+          </div>
+          <button class="copy-btn" id="copyBtn" data-i18n="hero.copy">KOPYALA</button>
+        </div>
+      </div>
+
+      <aside class="mini-panel">
+        <h3 data-i18n="tok.title">Tokenomics</h3>
+        <div class="sub" data-i18n="tok.total">1.3 MİLYAR $WREC</div>
+        <div class="donut">
+          <svg viewBox="0 0 120 120" width="150" height="150" aria-hidden="true">
+            <circle cx="60" cy="60" r="46" fill="none" stroke="#0d1c30" stroke-width="16"/>
+            <circle cx="60" cy="60" r="46" fill="none" stroke="#4fd3ff" stroke-width="16" stroke-dasharray="101.16 289.03"></circle>
+            <circle cx="60" cy="60" r="46" fill="none" stroke="#2b82f0" stroke-width="16" stroke-dasharray="66.71 289.03" stroke-dashoffset="-101.16"></circle>
+            <circle cx="60" cy="60" r="46" fill="none" stroke="#9fe8ff" stroke-width="16" stroke-dasharray="28.9 289.03" stroke-dashoffset="-167.87"></circle>
+            <circle cx="60" cy="60" r="46" fill="none" stroke="#e6f7ff" stroke-opacity=".7" stroke-width="16" stroke-dasharray="43.35 289.03" stroke-dashoffset="-196.77"></circle>
+            <circle cx="60" cy="60" r="46" fill="none" stroke="#3c6fa8" stroke-width="16" stroke-dasharray="28.9 289.03" stroke-dashoffset="-240.12"></circle>
+            <circle cx="60" cy="60" r="46" fill="none" stroke="#23405e" stroke-width="16" stroke-dasharray="20.01 289.03" stroke-dashoffset="-269.02"></circle>
+          </svg>
+          <div class="mid"><b>35%</b><small data-i18n="tok.airdropShort">Airdrop</small></div>
+        </div>
+        <ul class="legend">
+          <li><i style="background:#4fd3ff"></i><span data-i18n="tok.l1">Airdrop &amp; Oyun Ödülü</span><span>35%</span></li>
+          <li><i style="background:#2b82f0"></i><span data-i18n="tok.l2">Kilitli Hazine</span><span>23.08%</span></li>
+          <li><i style="background:#9fe8ff"></i><span data-i18n="tok.l3">Ön / Halka Satış</span><span>10%</span></li>
+          <li><i style="background:#e6f7ff"></i><span data-i18n="tok.l4">Likidite Havuzu</span><span>15%</span></li>
+          <li><i style="background:#3c6fa8"></i><span data-i18n="tok.l5">Pazarlama</span><span>10%</span></li>
+          <li><i style="background:#23405e"></i><span data-i18n="tok.l6">Ekip &amp; Kurucular</span><span>6.92%</span></li>
+        </ul>
+        <div class="lock-tag" data-i18n="tok.lock">Kilitli hazine · Kasım 2028</div>
+      </aside>
+    </div>
+
+  </div>
+</section>
+
+<section id="surec" style="padding:0 0 40px">
+  <div class="wrap">
+    <div class="notice">
+      <div class="nt"><span class="ico" aria-hidden="true">!</span><span data-i18n="note.t">Ödüller bugünden başlamaz: önce liste, sonra 3 aylık döngü</span></div>
+      <p data-i18n="note.p">3 aylık airdrop döngüsü <b>yalnızca $WREC borsalarda listelendikten sonra</b> başlar. Listeleme öncesi dönemde oyun içi puanlar ve <b>WRGP</b> birikimi devam eder; ancak token dağıtımı, ilk büyük airdrop ile birlikte liste açılışına yakın tarihte yapılır. Bugünden itibaren 3 ayda bir ödeme yapıldığı iddiası <b>doğru değildir</b>.</p>
+      <div class="chips">
+        <span class="chip" data-i18n="note.c1">Listeleme: Faz 3 · Nisan–Temmuz 2028</span>
+        <span class="chip" data-i18n="note.c2">İlk airdrop: liste açılışına yakın</span>
+        <span class="chip warn" data-i18n="note.c3">Kilitli hazine: Kasım 2028</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="tokenomics">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow" data-i18n="tok.eyebrow">TOKEN DAĞILIMI</span>
+      <h2 data-i18n="tok.h2">1.3 milyar $WREC nasıl dağıtılıyor?</h2>
+      <p data-i18n="tok.p">Arzın en büyük payı doğrudan oyuncuya ayrıldı: airdrop ve oyun içi ödüller toplam arzın %35'i. Hazine payı 2028 Kasım'a kadar kilitli.</p>
+    </div>
+
+    <div class="tok-grid">
+      <div class="tok-donut">
+        <div class="donut" style="width:210px;height:210px">
+          <svg viewBox="0 0 120 120" width="210" height="210" aria-hidden="true">
+            <circle cx="60" cy="60" r="46" fill="none" stroke="#0d1c30" stroke-width="15"/>
+            <circle cx="60" cy="60" r="46" fill="none" stroke="#4fd3ff" stroke-width="15" stroke-dasharray="101.16 289.03"></circle>
+            <circle cx="60" cy="60" r="46" fill="none" stroke="#2b82f0" stroke-width="15" stroke-dasharray="66.71 289.03" stroke-dashoffset="-101.16"></circle>
+            <circle cx="60" cy="60" r="46" fill="none" stroke="#9fe8ff" stroke-width="15" stroke-dasharray="28.9 289.03" stroke-dashoffset="-167.87"></circle>
+            <circle cx="60" cy="60" r="46" fill="none" stroke="#e6f7ff" stroke-opacity=".7" stroke-width="15" stroke-dasharray="43.35 289.03" stroke-dashoffset="-196.77"></circle>
+            <circle cx="60" cy="60" r="46" fill="none" stroke="#3c6fa8" stroke-width="15" stroke-dasharray="28.9 289.03" stroke-dashoffset="-240.12"></circle>
+            <circle cx="60" cy="60" r="46" fill="none" stroke="#23405e" stroke-width="15" stroke-dasharray="20.01 289.03" stroke-dashoffset="-269.02"></circle>
+          </svg>
+          <div class="mid"><b style="font-size:26px">1.3B</b><small data-i18n="tok.supply">Toplam Arz</small></div>
+        </div>
+        <div class="total">$WREC</div>
+        <div class="tok-note" data-i18n="tok.note">Yüzdeler toplamı %100'dür ve arzda ek basım (mint) yoktur.</div>
+      </div>
+
+      <div class="tok-rows">
+        <div class="tok-row">
+          <i class="dot" style="background:#4fd3ff"></i>
+          <div class="name"><span data-i18n="tok.r1">Airdrop &amp; Oyun İçi Ödüller</span><em data-i18n="tok.r1s">3 aylık sezon ödülleri ve ilk büyük airdrop</em></div>
+          <div class="amt">455,000,000</div><div class="pct">35%</div>
+          <div class="bar"><i style="width:35%;background:#4fd3ff"></i></div>
+        </div>
+        <div class="tok-row locked">
+          <i class="dot" style="background:#2b82f0"></i>
+          <div class="name"><span data-i18n="tok.r2">Kilitli Hazine &amp; Geliştirme</span><em data-i18n="tok.r2s">Kasım 2028'e kadar kilitli</em></div>
+          <div class="amt">300,000,000</div><div class="pct">23.08%</div>
+          <div class="bar"><i style="width:23.08%;background:#2b82f0"></i></div>
+        </div>
+        <div class="tok-row">
+          <i class="dot" style="background:#9fe8ff"></i>
+          <div class="name"><span data-i18n="tok.r3">Ön Satış / Halka Arz</span><em data-i18n="tok.r3s">Listeleme öncesi topluluk satışı</em></div>
+          <div class="amt">130,000,000</div><div class="pct">10%</div>
+          <div class="bar"><i style="width:10%;background:#9fe8ff"></i></div>
+        </div>
+        <div class="tok-row">
+          <i class="dot" style="background:#e6f7ff"></i>
+          <div class="name"><span data-i18n="tok.r4">Likidite Havuzu</span><em data-i18n="tok.r4s">Borsa likiditesi ve fiyat istikrarı</em></div>
+          <div class="amt">195,000,000</div><div class="pct">15%</div>
+          <div class="bar"><i style="width:15%;background:#e6f7ff"></i></div>
+        </div>
+        <div class="tok-row">
+          <i class="dot" style="background:#3c6fa8"></i>
+          <div class="name"><span data-i18n="tok.r5">Pazarlama &amp; Ekosistem Büyümesi</span><em data-i18n="tok.r5s">Reklam, iş birlikleri, büyüme</em></div>
+          <div class="amt">130,000,000</div><div class="pct">10%</div>
+          <div class="bar"><i style="width:10%;background:#3c6fa8"></i></div>
+        </div>
+        <div class="tok-row">
+          <i class="dot" style="background:#23405e"></i>
+          <div class="name"><span data-i18n="tok.r6">Ekip &amp; Kurucular</span><em data-i18n="tok.r6s">Uzun vadeli geliştirme payı</em></div>
+          <div class="amt">90,000,000</div><div class="pct">6.92%</div>
+          <div class="bar"><i style="width:6.92%;background:#23405e"></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="roadmap">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow" data-i18n="road.eyebrow">ZAMAN ÇİZELGESİ</span>
+      <h2 data-i18n="road.h2">Yol haritası</h2>
+      <p data-i18n="road.p">İki faz tamamlandı, oyun tarafı aktif. Token dağıtımı ve liste 2028'de planlandı — acele etmiyoruz, sürdürülebilir bir takvim izliyoruz.</p>
+    </div>
+
+    <div class="tl">
+      <div class="tl-item done">
+        <div class="node" aria-hidden="true">✓</div>
+        <div class="body">
+          <div class="tl-head">
+            <b data-i18n="road.p1">Faz 1 — Temel Kurulum</b>
+            <span class="when" data-i18n="road.p1w">Tamamlandı</span>
+            <span class="badge done" data-i18n="road.done">Tamamlandı</span>
+          </div>
+          <p data-i18n="road.p1d">Akıllı kontrat BNB Smart Chain'e dağıtıldı, GitHub üzerinde whitepaper deposu yayına alındı.</p>
+        </div>
+      </div>
+
+      <div class="tl-item active">
+        <div class="node" aria-hidden="true"></div>
+        <div class="body">
+          <div class="tl-head">
+            <b data-i18n="road.p2">Faz 2 — Oyun &amp; WRGP Çiftliği</b>
+            <span class="when" data-i18n="road.p2w">Devam ediyor</span>
+            <span class="badge act" data-i18n="road.act">Aktif</span>
+          </div>
+          <p data-i18n="road.p2d">Telegram Mini App arcade oynanışı ve WRGP kazanımı canlı. Puanlar listeleme öncesi birikmeye devam ediyor.</p>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="node" aria-hidden="true"></div>
+        <div class="body">
+          <div class="tl-head">
+            <b data-i18n="road.p3">Faz 3 — Airdrop &amp; Borsa Listelemesi</b>
+            <span class="when" data-i18n="road.p3w">Nisan – Temmuz 2028</span>
+            <span class="badge next" data-i18n="road.next">Planlandı</span>
+          </div>
+          <p data-i18n="road.p3d">İlk büyük airdrop, liste açılışına yakın tarihte oyunculara dağıtılır. Listeleme ile birlikte <b>3 aylık rekabet sezonları</b> ve %75 gelir paylaşımı döngüsü başlar.</p>
+        </div>
+      </div>
+
+      <div class="tl-item">
+        <div class="node" aria-hidden="true"></div>
+        <div class="body">
+          <div class="tl-head">
+            <b data-i18n="road.p4">Faz 4 — Kilitli Hazine Açılışı</b>
+            <span class="when" data-i18n="road.p4w">Kasım 2028</span>
+            <span class="badge next" data-i18n="road.next">Planlandı</span>
+          </div>
+          <p data-i18n="road.p4d">Hazine ve geliştirme payının kilidi açılır; ekosistem büyümesi ve uzun vadeli geliştirme için kademeli olarak kullanılır.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="ozet" style="padding:0 0 8px">
+  <div class="wrap">
+    <div class="stats" style="margin-top:0">
+      <div class="stat"><small data-i18n="st.1">Toplam Arz</small><b>1,300,000,000</b></div>
+      <div class="stat"><small data-i18n="st.2">Ağ</small><b>BNB Smart Chain</b></div>
+      <div class="stat"><small data-i18n="st.3">Gelir Payı</small><b class="hi">%75</b></div>
+      <div class="stat"><small data-i18n="st.4">Ödül Döngüsü</small><b data-i18n="st.4v">3 Aylık Sezon</b></div>
+    </div>
+  </div>
+</section>
+
+<section id="odul">
+  <div class="wrap">
+    <div class="rev">
+      <span class="eyebrow" data-i18n="rev.eyebrow">SÜRDÜRÜLEBİLİR ÖDÜL MODELİ</span>
+      <div class="rev-grid">
+        <div>
+          <h2 data-i18n="rev.h2">Sürdürülebilir 3 Aylık Airdrop ve Ödül Modeli</h2>
+          <p data-i18n="rev.p1">Token borsalarda listelendikten sonra ekosistem güçlü ve döngüsel bir modele geçer: oyun skorları sıfırlanır ve oyuncular <b>3 aylık rekabet sezonlarında</b> yarışır. Platformun reklam ve oyun gelirlerinin <b>%75'i</b>, her sezonun sonunda liderlik tablosu sıralamasına göre oyunculara airdrop olarak dağıtılır.</p>
+          <p data-i18n="rev.p2">Ödüller sabit bir hazineden değil, platformun her sezon yeniden ürettiği <b>gerçek gelirden</b> gelir. Bu yüzden model sonsuz bir sürdürülebilirlik ve token için gerçek bir kullanım alanı yaratır.</p>
+          <div class="cycle">
+            <span data-i18n="rev.c1">Borsa listelemesi</span><i aria-hidden="true">→</i>
+            <span data-i18n="rev.c2">3 aylık sezon</span><i aria-hidden="true">→</i>
+            <span data-i18n="rev.c3">Skorlar sıfırlanır</span><i aria-hidden="true">→</i>
+            <span data-i18n="rev.c4">Gelirin %75'i</span><i aria-hidden="true">→</i>
+            <span data-i18n="rev.c5">Airdrop dağıtımı</span>
+          </div>
+        </div>
+        <div class="pct-hero">
+          <div class="num">75%</div>
+          <div class="cap" data-i18n="rev.cap">Reklam &amp; oyun geliri oyunculara</div>
+        </div>
+      </div>
+
+      <div class="rev-steps">
+        <div class="step">
+          <b data-i18n="rev.s1t">01 · SEZON</b>
+          <p data-i18n="rev.s1d">Skorlar sıfırlanır, yeni 3 aylık sezon açılır ve oyuncular liderlik tablosunda yarışır.</p>
+        </div>
+        <div class="step">
+          <b data-i18n="rev.s2t">02 · GELİR</b>
+          <p data-i18n="rev.s2d">Sezon boyunca oluşan reklam ve oyun gelirinin %75'i ödül havuzuna ayrılır.</p>
+        </div>
+        <div class="step">
+          <b data-i18n="rev.s3t">03 · AIRDROP</b>
+          <p data-i18n="rev.s3d">Havuz, liderlik tablosu sıralamasına göre 3 ayda bir oyuncuların cüzdanlarına dağıtılır.</p>
+        </div>
+      </div>
+
+      <p class="tok-note" style="margin-top:26px" data-i18n="rev.after">Bu döngü liste tarihinden sonra başlar: listeleme öncesinde oyuncular puan ve WRGP biriktirir, ilk büyük airdrop ise liste açılışına yakın dağıtılır.</p>
+    </div>
+
+    <div class="buyback">
+      <div class="bb-head">
+        <span class="bb-ico" aria-hidden="true">↻</span>
+        <div>
+          <h3 data-i18n="bb.h">Piyasadan alım (buy-back) ile dağıtım</h3>
+          <p data-i18n="bb.sub">Airdrop token arzından eritilmez — her sezon piyasadan satın alınır</p>
+        </div>
+      </div>
+      <p data-i18n="bb.p1">Tüm tokenlar piyasaya girdiğinde ve $WREC işlem görmeye başladığında, airdrop almak için oyun oynayan oyuncularımıza dağıtılacak ödüller doğrudan arzdan kesilmez. Platformun reklam ve oyun gelirlerinin <b>%75'i</b> ile her sezon sonunda <b>piyasadan $WREC satın alınır</b> ve bu tokenlar liderlik tablosu sıralamasına göre oyuncularımıza airdrop olarak dağıtılır.</p>
+      <p data-i18n="bb.p2">Bu yaklaşım iki sonucu birlikte getirir: ödül havuzu dolaşımdaki arzı şişirmediği için model <b>sürdürülebilir</b> kalır; alımlar düzenli olarak piyasadan gerçekleştiği için tokenin <b>değerini korumasına</b> katkı sağlanır. Yani oyuncunun kazancı, projenin kendi ürettiği gerçek gelire ve piyasadaki gerçek talebe dayanır.</p>
+      <div class="bb-flow">
+        <span data-i18n="bb.f1">Reklam &amp; oyun geliri</span><i aria-hidden="true">→</i>
+        <span data-i18n="bb.f2">Gelirin %75'i</span><i aria-hidden="true">→</i>
+        <span data-i18n="bb.f3">Piyasadan $WREC alımı</span><i aria-hidden="true">→</i>
+        <span data-i18n="bb.f4">Oyunculara airdrop</span>
+      </div>
+      <p class="bb-note" data-i18n="bb.note">Not: Bu mekanizma da listeleme sonrasında, 3 aylık sezon döngüsüyle birlikte başlar. Alım tutarı sezon gelirine bağlıdır; sabit veya garantili bir getiri taahhüdü değildir.</p>
+    </div>
+  </div>
+</section>
+
+<section id="sss">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow" data-i18n="faq.eyebrow">SIKÇA SORULAN SORULAR</span>
+      <h2 data-i18n="faq.h2">Airdrop ne zaman başlıyor?</h2>
+      <p data-i18n="faq.p">En çok sorulan nokta: ödüller bugün değil, borsa listelemesinden sonra başlıyor.</p>
+    </div>
+    <div class="faq">
+      <details open>
+        <summary data-i18n="faq.q1">Airdrop şu andan itibaren 3 ayda bir mi veriliyor?</summary>
+        <p data-i18n="faq.a1">Hayır. 3 aylık ödül döngüsü <b>yalnızca $WREC borsalarda listelendikten sonra</b> başlar. O tarihe kadar oyun içi skor ve WRGP birikimi devam eder; token dağıtımı ilk büyük airdrop ile, liste açılışına yakın tarihte yapılır.</p>
+      </details>
+      <details>
+        <summary data-i18n="faq.q2">İlk büyük airdrop ne zaman?</summary>
+        <p data-i18n="faq.a2">Yol haritasına göre listeleme <b>Faz 3</b> döneminde, Nisan–Temmuz 2028 aralığında planlanıyor. İlk büyük airdrop liste açılışına yakın dağıtılır; kesin tarih duyurulduğunda resmi kanallardan paylaşılır.</p>
+      </details>
+      <details>
+        <summary data-i18n="faq.q3">%75 gelir payı nasıl hesaplanıyor?</summary>
+        <p data-i18n="faq.a3">Platformun reklam ve oyun gelirlerinin %75'i her sezon sonunda ayrı bir ödül havuzuna aktarılır ve <b>liderlik tablosu sıralamasına</b> göre oyunculara dağıtılır. Kalan %25 geliştirme, altyapı ve pazarlama için kullanılır.</p>
+      </details>
+      <details>
+        <summary data-i18n="faq.q4">Kilitli hazine ne zaman açılıyor?</summary>
+        <p data-i18n="faq.a4">300.000.000 $WREC (toplam arzın %23,08'i) hazine ve geliştirme payı <b>Kasım 2028'e kadar kilitlidir</b> ve kademeli olarak açılır.</p>
+      </details>
+      <details>
+        <summary data-i18n="faq.q5">Bu bir scam veya boş proje mi?</summary>
+        <p data-i18n="faq.a5">Akıllı sözleşme BNB Smart Chain üzerinde yayınlandı, whitepaper GitHub'da açık ve kontrat adresi herkesin doğrulaması için sitede yayınlanıyor. Ödül modeli sabit bir vaat yerine <b>gerçek reklam ve oyun gelirine</b> bağlıdır.</p>
+      </details>
+      <details>
+        <summary data-i18n="faq.q6">Nasıl katılırım?</summary>
+        <p data-i18n="faq.a6">Telegram üzerinden <b>WatchRecGameBot</b> ile oyunu açman yeterli. Skorların sezona otomatik olarak işlenir; listeleme sonrası ödüller cüzdanına gönderilir.</p>
+      </details>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a href="#top" class="brand"><img src="wrec-logo.webp" alt="WatchRec logo" width="30" height="30"><span>WatchRec</span><small>$WREC</small></a>
+        <p data-i18n="foot.about">BNB Smart Chain üzerinde çalışan, Telegram Mini App arcade oyunu ve %75 gelir paylaşımlı sürdürülebilir airdrop modeliyle büyüyen oyun ekosistemi.</p>
+      </div>
+      <div>
+        <h4 data-i18n="foot.proj">Proje</h4>
+        <ul>
+          <li><a href="#whitepaper" id="wpOpenFoot"><span data-i18n="foot.wp">Whitepaper</span> · <span data-i18n="wp.local">sitede oku</span></a></li>
+          <li><a href="https://github.com/azulfira01-art/Watchrec-Token" target="_blank" rel="noopener" data-i18n="foot.gh">GitHub Deposu</a></li>
+          <li><a href="https://t.me/WatchRecGameBot" target="_blank" rel="noopener">Telegram · <span data-i18n="foot.game">Oyun Botu</span></a></li>
+          <li><a href="#tokenomics" data-i18n="nav.tok">Tokenomics</a></li>
+          <li><a href="#roadmap" data-i18n="nav.road">Yol Haritası</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4 data-i18n="foot.ver">Doğrulama</h4>
+        <div class="verify">
+          <span class="vi" aria-hidden="true">✓</span>
+          <div style="min-width:0">
+            <small data-i18n="foot.ca">Kontrat Adresi · BEP-20</small>
+            <code>0x38eb8b7C8E1305fcc041E5e8E352fBB05F603Afb</code>
+          </div>
+        </div>
+        <ul style="margin-top:14px">
+          <li><a href="https://bscscan.com/token/0x38eb8b7C8E1305fcc041E5e8E352fBB05F603Afb" target="_blank" rel="noopener">BscScan</a></li>
+          <li><a href="https://www.wrectoken.com" target="_blank" rel="noopener">www.wrectoken.com</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© <span id="yr">2026</span> WatchRec ($WREC)</span>
+      <span data-i18n="foot.rights">Tüm hakları saklıdır.</span>
+    </div>
+    <p class="disclaimer" data-i18n="foot.disc">Yasal uyarı: Bu sayfadaki bilgiler yatırım tavsiyesi değildir. Kripto varlıklar yüksek risk taşır; kendi araştırmanızı yapın. Token dağıtım takvimi listeleme sürecine bağlıdır ve değişebilir.</p>
+  </div>
+</footer>
+
+<div class="wp-overlay" id="wpOverlay" role="dialog" aria-modal="true" aria-labelledby="wpTitle" aria-hidden="true">
+  <div class="wp-bar">
+    <img src="wrec-logo.webp" alt="WatchRec logo" onerror="this.style.display='none'">
+    <b>WatchRec</b><span class="wp-tag">$WREC · WHITEPAPER</span>
+    <button class="wp-x" type="button" id="wpClose"><span aria-hidden="true">✕</span><span data-i18n="wp.close">Kapat</span></button>
+  </div>
+
+  <article class="wp-doc" id="wpTr">
+    <p class="wp-kicker" data-i18n="wp.kick">Resmî doküman · v1.0 · 2026</p>
+    <h1 id="wpTitle">$WREC (WatchRec) Resmî Whitepaper</h1>
+    <p>WatchRec ($WREC), BNB Smart Chain (BEP-20) üzerinde çalışan, topluluk odaklı bir Web3 ekosistemidir. Telegram Mini App üzerinden oynanan atari (arcade) oyunları, topluluk görevleri ve ödül dağıtım mekanizmalarını birleştirerek ölçeklenebilir ve sürdürülebilir bir merkeziyetsiz ekosistem kurmayı hedefler.</p>
+
+    <div class="wp-toc">
+      <a href="#wp-1">1 · Özet</a><a href="#wp-2">2 · Tokenomics</a><a href="#wp-3">3 · Altyapı</a>
+      <a href="#wp-4">4 · Yol Haritası</a><a href="#wp-5">5 · Ödül Modeli</a><a href="#wp-6">6 · Yasal Uyarı</a>
+    </div>
+
+    <h3 id="wp-1">1. Yönetici Özeti</h3>
+    <p>WatchRec, oyun ile kazanç arasındaki bağı gerçek bir ürün üzerine kurar: oyuncular Telegram içindeki Mini App'e girer, arkada puan (WRGP) toplar ve token listelendikten sonra bu emek zincir üzerinde $WREC'ye dönüşür. Ekosistemin kalbi, platformun <b>reklam ve oyun gelirlerinin %75'inin</b> oyunculara dağıtılmasıdır. Böylece ödüller sabit bir hazineden eritilmez; her sezon yeniden üretilen gerçek gelirden karşılanır.</p>
+
+    <h3 id="wp-2">2. Tokenomics ve Dağıtım</h3>
+    <ul>
+      <li><b>Token sembolü:</b> $WREC</li>
+      <li><b>Toplam arz:</b> 1.300.000.000 $WREC</li>
+      <li><b>Ağ:</b> BNB Smart Chain (BEP-20)</li>
+      <li><b>Kontrat adresi:</b> <span style="font-family:Consolas,monospace;font-size:13.5px">0x38eb8b7C8E1305fcc041E5e8E352fBB05F603Afb</span></li>
+    </ul>
+    <table class="wp-tbl">
+      <thead><tr><th>Dağıtım kalemi</th><th>Oran</th><th>Miktar</th></tr></thead>
+      <tbody>
+        <tr><td>Airdrop ve oyun içi ödüller</td><td>%35</td><td>455.000.000</td></tr>
+        <tr><td>Kilitli hazine ve geliştirme <span style="color:#7f9db8">(Kasım 2028'e kadar kilitli)</span></td><td>%23,08</td><td>300.000.000</td></tr>
+        <tr><td>Ön satış / halka satış</td><td>%10</td><td>130.000.000</td></tr>
+        <tr><td>Likidite havuzu</td><td>%15</td><td>195.000.000</td></tr>
+        <tr><td>Pazarlama ve ekosistem büyümesi</td><td>%10</td><td>130.000.000</td></tr>
+        <tr><td>Ekip ve kurucular</td><td>%6,92</td><td>90.000.000</td></tr>
+        <tr><td>Toplam</td><td>%100</td><td>1.300.000.000</td></tr>
+      </tbody>
+    </table>
+    <p><b>Airdrop ve oyun içi ödüller (%35):</b> Telegram Mini App oyuncuları, topluluk görevlerini tamamlayanlar, lider tablosunda üst sıralarda yer alanlar ve davet programı için ayrılmıştır.</p>
+    <p><b>Kilitli hazine ve geliştirme (%23,08):</b> Ekosistem istikrarı ve platform büyümesi için ayrılmıştır ve <b>Kasım 2028'e kadar kesin olarak kilitlidir</b>.</p>
+    <p><b>Ön satış / halka satış (%10):</b> Erken destekçiler, başlangıç likiditesi ve topluluk ön satışı için kullanılır.</p>
+    <p><b>Likidite havuzu (%15):</b> PancakeSwap ve planlanan merkezi borsa (CEX) listelenmelerinde işlem likiditesi sağlar.</p>
+    <p><b>Pazarlama ve ekosistem büyümesi (%10):</b> Pazarlama kampanyaları, KOL iş birlikleri ve kullanıcı kazanımı içindir.</p>
+    <p><b>Ekip ve kurucular (%6,92):</b> Çekirdek ekip ve geliştiricilerin uzun vadeli teknik altyapı çalışmalarını destekler.</p>
+
+    <h3 id="wp-3">3. Ekosistem Mimarisi ve Altyapı</h3>
+    <ul>
+      <li><b>Telegram Mini App motoru:</b> Web3'e Telegram içinden anında erişim sağlayan oyun portalı.</li>
+      <li><b>Akıllı kontrat katmanı:</b> BNB Smart Chain üzerinde BEP-20 standardında, düşük işlem ücreti ve yüksek işlem verimliliği sunan sözleşme.</li>
+      <li><b>Web portalı:</b> Web3 bağlantılarına hazır şekilde yayınlanan tanıtım ve airdrop portalı.</li>
+    </ul>
+
+    <h3 id="wp-4">4. Yol Haritası</h3>
+    <p><b>Faz 1 — Temel ve Lansman (tamamlandı):</b> Akıllı kontratın BNB Smart Chain'e dağıtımı, GitHub deposu ve whitepaper yayını, airdrop portalı ile Telegram Mini App entegrasyonu, BscScan token bilgisi ve logo doğrulaması.</p>
+    <p><b>Faz 2 — Topluluk ve arcade genişlemesi (aktif):</b> Uygulama içi atari mekanikleri (Match-3, lider tablosu senkronizasyonu), ilk pazarlama ve KOL çalışmaları, topluluk görevleri ve <b>WRGP farming</b>.</p>
+    <p><b>Faz 3 — Airdrop dağıtımı ve borsa listelenmeleri (Nisan 2028 – Temmuz 2028):</b> Oyunculara ve topluluk üyelerine <b>resmî airdrop dağıtımı</b>, PancakeSwap DEX ve CEX listelenmeleri, CoinGecko ve CoinMarketCap takibi, oyun içi puanların zincir üzerinde $WREC'ye dönüşümü. İlk büyük airdrop, <b>listeleme arifesinde</b> oyunculara dağıtılır.</p>
+    <p><b>Faz 4 — Uzun vadeli ölçekleme (2028 sonu ve sonrası):</b> Genişletilmiş staking ve kullanım alanları, <b>Kasım 2028</b> hazine kilidinin açılması ve yeni nesil ekosistem geliştirmesi.</p>
+
+    <h3 id="wp-5">5. Sürdürülebilir 3 Aylık Airdrop ve Ödül Modeli</h3>
+    <p>Token borsalarda listelendikten sonra ekosistem güçlü bir döngüsel modele geçer. Oyun puanları sıfırlanır ve oyuncular <b>3 aylık rekabet sezonlarında</b> yarışır. Platformun tüm reklam ve oyun gelirlerinin <b>%75'i</b>, her 3 ayda bir lider tablosu sıralamasına göre oyunculara airdrop olarak dağıtılır.</p>
+    <div class="wp-card">
+      <p><b>Önemli:</b> Bu döngü <b>listeleme sonrasında</b> başlar; bugünden itibaren işleyen bir 3 aylık ödeme takvimi yoktur. Listeleme öncesinde oyuncular puan ve WRGP biriktirir; ilk büyük airdrop listeleme arifesinde yapılır.</p>
+    </div>
+
+    <p><b>Piyasadan alım ile dağıtım:</b> Tüm tokenlar piyasada işlem görmeye başladıktan sonra, airdrop almak için oyun oynayan oyunculara dağıtılan ödüller doğrudan arzdan kesilmez. Platform, reklam ve oyun gelirlerinin %75'i ile her sezon sonunda piyasadan $WREC satın alır ve bu tokenları liderlik tablosu sıralamasına göre oyunculara airdrop olarak dağıtır. Böylece ödül havuzu dolaşımdaki arzı şişirmez; model sürdürülebilir kalır ve düzenli piyasa alımları tokenin değerini korumasına katkı sağlar. Alım tutarı sezon gelirine bağlıdır; sabit veya garantili bir getiri taahhüdü değildir.</p>
+<h3 id="wp-6">6. Yasal Uyarı</h3>
+    <p>$WREC, WatchRec ekosistemi içinde kullanılmak üzere tasarlanmış bir kullanım (utility) tokenıdır. Kripto varlıklara katılım doğası gereği risk taşır. Web3 yatırımlarına katılmadan önce kendi araştırmanızı yapın (DYOR). Bu sayfadaki bilgiler yatırım tavsiyesi değildir.</p>
+
+    <p style="margin-top:26px;color:#7f9db8;font-size:13px" data-i18n="wp.src">Kaynak: projenin GitHub deposundaki resmî WHITEPAPER.md dosyası. Orijinal metni her zaman depodan doğrulayabilirsiniz.</p>
+    <p><a class="wp-link" href="https://github.com/azulfira01-art/Watchrec-Token/blob/main/WHITEPAPER.md" target="_blank" rel="noopener">Resmî İngilizce whitepaper'ı GitHub'da aç →</a></p>
+  </article>
+  <article class="wp-doc" id="wpEn" hidden lang="en">
+    <p class="wp-kicker">OFFICIAL DOCUMENT · v1.0 · 2026</p>
+    <h1>$WREC (WatchRec) Official Whitepaper</h1>
+    <p>WatchRec ($WREC) is a community-driven Web3 ecosystem running on BNB Smart Chain (BEP-20). Built around interactive engagement through Telegram Mini Apps, it combines casual arcade gaming, community quests and reward distribution to create a scalable and sustainable decentralised ecosystem.</p>
+    <h3>1. Executive Summary</h3>
+    <p>WatchRec links play and earning through a real product: players open the Telegram Mini App, accumulate points (WRGP), and once the token is listed those points convert into on-chain $WREC. At the core of the ecosystem, <b>75% of all platform advertising and gaming revenue</b> is distributed to players, so rewards are not drained from a fixed treasury but paid from revenue generated anew every season.</p>
+    <h3>2. Tokenomics &amp; Allocation</h3>
+    <ul>
+      <li><b>Symbol:</b> $WREC</li>
+      <li><b>Total supply:</b> 1,300,000,000 $WREC</li>
+      <li><b>Network:</b> BNB Smart Chain (BEP-20)</li>
+      <li><b>Contract:</b> <span style="font-family:Consolas,monospace;font-size:13.5px">0x38eb8b7C8E1305fcc041E5e8E352fBB05F603Afb</span></li>
+    </ul>
+    <table class="wp-tbl">
+      <thead><tr><th>Allocation</th><th>Share</th><th>Amount</th></tr></thead>
+      <tbody>
+        <tr><td>Airdrop &amp; in-game rewards</td><td>35%</td><td>455,000,000</td></tr>
+        <tr><td>Locked treasury &amp; development <span style="color:#7f9db8">(locked until Nov 2028)</span></td><td>23.08%</td><td>300,000,000</td></tr>
+        <tr><td>Pre-sale / public sale</td><td>10%</td><td>130,000,000</td></tr>
+        <tr><td>Liquidity pool</td><td>15%</td><td>195,000,000</td></tr>
+        <tr><td>Marketing &amp; ecosystem growth</td><td>10%</td><td>130,000,000</td></tr>
+        <tr><td>Team &amp; founders</td><td>6.92%</td><td>90,000,000</td></tr>
+        <tr><td>Total</td><td>100%</td><td>1,300,000,000</td></tr>
+      </tbody>
+    </table>
+    <p>The treasury allocation is <b>strictly locked until November 2028</b>. Liquidity is set aside for PancakeSwap and upcoming CEX listings; marketing funds user acquisition and KOL partnerships.</p>
+    <h3>3. Infrastructure</h3>
+    <ul>
+      <li><b>Telegram Mini App engine</b> — instant Web3 access inside Telegram.</li>
+      <li><b>Smart contract layer</b> — BEP-20 on BNB Smart Chain, low fees and fast settlement.</li>
+      <li><b>Web portal</b> — landing and airdrop portal, ready for Web3 provider connections.</li>
+    </ul>
+    <h3>4. Roadmap</h3>
+    <p><b>Phase 1 — Foundation &amp; launch (completed):</b> contract deployment, GitHub repository and whitepaper release, airdrop portal and Mini App integration, BscScan token info and logo verification.</p>
+    <p><b>Phase 2 — Community &amp; arcade expansion (active):</b> in-app arcade mechanics (Match-3, leaderboard sync), initial marketing and KOL outreach, community quests and <b>WRGP farming</b>.</p>
+    <p><b>Phase 3 — Airdrop distribution &amp; exchange listings (April 2028 – July 2028):</b> official airdrop distribution to players and community members, PancakeSwap DEX and CEX listings, CoinGecko and CoinMarketCap tracking, in-game point conversion to on-chain $WREC. The initial major airdrop is distributed to players <b>around the token listing eve</b>.</p>
+    <p><b>Phase 4 — Long-term scaling (late 2028 and beyond):</b> extended staking and utility, treasury unlock execution (<b>November 2028</b>) for next-generation ecosystem development.</p>
+    <h3>5. Sustainable 3-Month Airdrop &amp; Reward Model</h3>
+    <p>Once the token is listed on exchanges, the ecosystem transitions into a cyclic model. Game scores reset and players compete in <b>3-month competitive seasons</b>. <b>75% of all advertising and gaming revenue</b> generated by the platform is distributed as airdrops every 3 months according to leaderboard rankings.</p>
+    <div class="wp-card">
+      <p><b>Important:</b> this cycle starts <b>after listing</b>. There is no 3-month payout calendar running today. Before listing, players accumulate points and WRGP; the first major airdrop is paid around the listing eve.</p>
+    </div>
+    <p><b>Distribution through market purchases:</b> once all tokens are trading in the market, the rewards paid to players who play to earn airdrops are not taken from supply. At the end of every season the platform uses 75% of its ad and game revenue to buy $WREC on the open market and airdrops those tokens to players according to leaderboard ranking. The reward pool therefore does not inflate circulating supply; the model stays sustainable and regular market purchases help the token preserve its value. The purchase amount depends on season revenue and is not a fixed or guaranteed return.</p>
+<h3>6. Disclaimer</h3>
+    <p>$WREC is a utility token intended for use within the WatchRec ecosystem. Participating in crypto assets involves inherent risks. Please conduct your own research (DYOR) before engaging in Web3 investments. Nothing on this page is investment advice.</p>
+  </article>
+  <article class="wp-doc" id="wpRu" hidden lang="ru">
+    <p class="wp-kicker">ОФИЦИАЛЬНЫЙ ДОКУМЕНТ · v1.0 · 2026</p>
+    <h1>$WREC (WatchRec) — официальный вайтпейпер</h1>
+    <p>WatchRec ($WREC) — экосистема Web3, работающая на BNB Smart Chain (BEP-20) и ориентированная на сообщество. Аркадные игры в Telegram Mini App, задания сообщества и механизмы распределения наград объединены, чтобы построить масштабируемую и устойчивую децентрализованную экосистему.</p>
+
+    <div class="wp-toc">
+      <a href="#wpru-1">1 · Резюме</a><a href="#wpru-2">2 · Токеномика</a><a href="#wpru-3">3 · Инфраструктура</a>
+      <a href="#wpru-4">4 · Дорожная карта</a><a href="#wpru-5">5 · Модель наград</a><a href="#wpru-6">6 · Отказ от ответственности</a>
+    </div>
+
+    <h3 id="wpru-1">1. Краткое резюме</h3>
+    <p>WatchRec строит связь между игрой и заработком на реальном продукте: игроки открывают Mini App в Telegram, накапливают очки (WRGP), и после листинга токена эти очки конвертируются в $WREC в сети. В основе экосистемы — распределение <b>75% рекламных и игровых доходов</b> платформы среди игроков. Поэтому награды не истощают фиксированную казну, а выплачиваются из реального дохода, который создаётся каждый сезон заново.</p>
+
+    <h3 id="wpru-2">2. Токеномика и распределение</h3>
+    <ul>
+      <li><b>Символ токена:</b> $WREC</li>
+      <li><b>Общее предложение:</b> 1 300 000 000 $WREC</li>
+      <li><b>Сеть:</b> BNB Smart Chain (BEP-20)</li>
+      <li><b>Адрес контракта:</b> <span style="font-family:Consolas,monospace;font-size:13.5px">0x38eb8b7C8E1305fcc041E5e8E352fBB05F603Afb</span></li>
+    </ul>
+    <table class="wp-tbl">
+      <thead><tr><th>Направление</th><th>Доля</th><th>Количество</th></tr></thead>
+      <tbody>
+        <tr><td>Airdrop и внутриигровые награды</td><td>35%</td><td>455 000 000</td></tr>
+        <tr><td>Заблокированная казна и разработка <span style="color:#7f9db8">(до ноября 2028)</span></td><td>23,08%</td><td>300 000 000</td></tr>
+        <tr><td>Предпродажа / публичная продажа</td><td>10%</td><td>130 000 000</td></tr>
+        <tr><td>Пул ликвидности</td><td>15%</td><td>195 000 000</td></tr>
+        <tr><td>Маркетинг и рост экосистемы</td><td>10%</td><td>130 000 000</td></tr>
+        <tr><td>Команда и основатели</td><td>6,92%</td><td>90 000 000</td></tr>
+        <tr><td>Итого</td><td>100%</td><td>1 300 000 000</td></tr>
+      </tbody>
+    </table>
+    <p><b>Airdrop и внутриигровые награды (35%):</b> для игроков Telegram Mini App, участников заданий, лидеров таблицы результатов и реферальной программы.</p>
+    <p><b>Заблокированная казна и разработка (23,08%):</b> для стабильности экосистемы и роста платформы; средства <b>жёстко заблокированы до ноября 2028 года</b>.</p>
+    <p><b>Предпродажа / публичная продажа (10%):</b> для ранних сторонников, стартовой ликвидности и предпродажи сообщества.</p>
+    <p><b>Пул ликвидности (15%):</b> обеспечивает ликвидность торгов на PancakeSwap и планируемых биржах (CEX).</p>
+    <p><b>Маркетинг и рост экосистемы (10%):</b> маркетинговые кампании, сотрудничество с KOL и привлечение пользователей.</p>
+    <p><b>Команда и основатели (6,92%):</b> поддерживает долгосрочную техническую работу основной команды и разработчиков.</p>
+
+    <h3 id="wpru-3">3. Архитектура и инфраструктура</h3>
+    <ul>
+      <li><b>Движок Telegram Mini App:</b> игровой портал с мгновенным доступом к Web3 внутри Telegram.</li>
+      <li><b>Уровень смарт-контракта:</b> BEP-20 на BNB Smart Chain — низкие комиссии и высокая скорость расчётов.</li>
+      <li><b>Веб-портал:</b> промо- и airdrop-портал, готовый к подключению Web3-провайдеров.</li>
+    </ul>
+
+    <h3 id="wpru-4">4. Дорожная карта</h3>
+    <p><b>Фаза 1 — основа и запуск (завершена):</b> развёртывание контракта в BNB Smart Chain, репозиторий GitHub и публикация вайтпейпера, airdrop-портал и интеграция Mini App, информация о токене на BscScan и проверка логотипа.</p>
+    <p><b>Фаза 2 — сообщество и развитие аркад (активна):</b> механики аркад в приложении (Match-3, синхронизация таблицы результатов), первый маркетинг и работа с KOL, задания сообщества и <b>WRGP farming</b>.</p>
+    <p><b>Фаза 3 — распределение airdrop и листинги (апрель 2028 – июль 2028):</b> официальное распределение airdrop среди игроков и участников сообщества, листинги на PancakeSwap (DEX) и CEX, отслеживание в CoinGecko и CoinMarketCap, конвертация игровых очков в $WREC в сети. Первый крупный airdrop раздаётся игрокам <b>накануне листинга</b>.</p>
+    <p><b>Фаза 4 — долгосрочное масштабирование (конец 2028 и далее):</b> расширенный стейкинг и новые сценарии использования, разблокировка казны в <b>ноябре 2028</b> и развитие экосистемы нового поколения.</p>
+
+    <h3 id="wpru-5">5. Устойчивая модель наград: airdrop каждые 3 месяца</h3>
+    <p>После листинга токена на биржах экосистема переходит в циклическую модель. Игровые очки сбрасываются, и игроки соревнуются в <b>3-месячных сезонах</b>. <b>75% всех рекламных и игровых доходов</b> платформы распределяются как airdrop каждые 3 месяца по местам в таблице результатов.</p>
+    <div class="wp-card">
+      <p><b>Важно:</b> этот цикл начинается <b>после листинга</b>; графика выплат каждые 3 месяца с сегодняшнего дня не существует. До листинга игроки накапливают очки и WRGP, а первый крупный airdrop выплачивается накануне листинга.</p>
+    </div>
+
+    <p><b>Распределение через выкуп с рынка:</b> когда все токены начнут торговаться, награды игрокам не вырезаются из предложения. В конце каждого сезона платформа направляет 75% доходов от рекламы и игры на покупку $WREC на открытом рынке и распределяет эти токены среди игроков по их месту в таблице лидеров. Призовой пул не раздувает предложение в обращении: модель остаётся устойчивой, а регулярные рыночные покупки помогают токену сохранять стоимость. Сумма покупки зависит от дохода сезона и не является фиксированной или гарантированной доходностью.</p>
+<h3 id="wpru-6">6. Отказ от ответственности</h3>
+    <p>$WREC — утилитарный токен, предназначенный для использования внутри экосистемы WatchRec. Участие в криптоактивах по своей природе связано с рисками. Проводите собственное исследование (DYOR) перед участием в Web3-инвестициях. Информация на этой странице не является инвестиционной рекомендацией.</p>
+  </article>
+  <article class="wp-doc" id="wpEs" hidden lang="es">
+    <p class="wp-kicker">DOCUMENTO OFICIAL · v1.0 · 2026</p>
+    <h1>Whitepaper oficial de $WREC (WatchRec)</h1>
+    <p>WatchRec ($WREC) es un ecosistema Web3 impulsado por la comunidad que funciona en BNB Smart Chain (BEP-20). Combina juegos arcade en Telegram Mini App, misiones de comunidad y mecanismos de distribución de recompensas para construir un ecosistema descentralizado escalable y sostenible.</p>
+
+    <div class="wp-toc">
+      <a href="#wpes-1">1 · Resumen</a><a href="#wpes-2">2 · Tokenomics</a><a href="#wpes-3">3 · Infraestructura</a>
+      <a href="#wpes-4">4 · Hoja de ruta</a><a href="#wpes-5">5 · Modelo de recompensas</a><a href="#wpes-6">6 · Aviso legal</a>
+    </div>
+
+    <h3 id="wpes-1">1. Resumen ejecutivo</h3>
+    <p>WatchRec conecta juego y ganancia con un producto real: los jugadores abren el Mini App de Telegram, acumulan puntos (WRGP) y, una vez listado el token, esos puntos se convierten en $WREC on-chain. El corazón del ecosistema es el reparto del <b>75% de los ingresos por publicidad y juego</b> a los jugadores. Así las recompensas no se drenan de un tesoro fijo, sino que se pagan con ingresos que se generan de nuevo cada temporada.</p>
+
+    <h3 id="wpes-2">2. Tokenomics y distribución</h3>
+    <ul>
+      <li><b>Símbolo:</b> $WREC</li>
+      <li><b>Oferta total:</b> 1.300.000.000 $WREC</li>
+      <li><b>Red:</b> BNB Smart Chain (BEP-20)</li>
+      <li><b>Contrato:</b> <span style="font-family:Consolas,monospace;font-size:13.5px">0x38eb8b7C8E1305fcc041E5e8E352fBB05F603Afb</span></li>
+    </ul>
+    <table class="wp-tbl">
+      <thead><tr><th>Asignación</th><th>Parte</th><th>Cantidad</th></tr></thead>
+      <tbody>
+        <tr><td>Airdrop y recompensas in-game</td><td>35%</td><td>455.000.000</td></tr>
+        <tr><td>Tesoro bloqueado y desarrollo <span style="color:#7f9db8">(bloqueado hasta nov. 2028)</span></td><td>23,08%</td><td>300.000.000</td></tr>
+        <tr><td>Preventa / venta pública</td><td>10%</td><td>130.000.000</td></tr>
+        <tr><td>Fondo de liquidez</td><td>15%</td><td>195.000.000</td></tr>
+        <tr><td>Marketing y crecimiento</td><td>10%</td><td>130.000.000</td></tr>
+        <tr><td>Equipo y fundadores</td><td>6,92%</td><td>90.000.000</td></tr>
+        <tr><td>Total</td><td>100%</td><td>1.300.000.000</td></tr>
+      </tbody>
+    </table>
+    <p><b>Airdrop y recompensas in-game (35%):</b> para jugadores del Mini App, participantes en misiones, líderes de la tabla de clasificación y el programa de referidos.</p>
+    <p><b>Tesoro bloqueado y desarrollo (23,08%):</b> destinado a la estabilidad del ecosistema y el crecimiento de la plataforma; <b>bloqueado estrictamente hasta noviembre de 2028</b>.</p>
+    <p><b>Preventa / venta pública (10%):</b> para patrocinadores tempranos, liquidez inicial y preventa comunitaria.</p>
+    <p><b>Fondo de liquidez (15%):</b> aporta liquidez de negociación en PancakeSwap y en los próximos listados en exchanges centralizados (CEX).</p>
+    <p><b>Marketing y crecimiento del ecosistema (10%):</b> campañas de marketing, colaboraciones con KOL y captación de usuarios.</p>
+    <p><b>Equipo y fundadores (6,92%):</b> apoya el trabajo técnico a largo plazo del equipo principal y los desarrolladores.</p>
+
+    <h3 id="wpes-3">3. Arquitectura e infraestructura</h3>
+    <ul>
+      <li><b>Motor Telegram Mini App:</b> portal de juego con acceso instantáneo a Web3 dentro de Telegram.</li>
+      <li><b>Capa de contrato inteligente:</b> BEP-20 en BNB Smart Chain, comisiones bajas y liquidación rápida.</li>
+      <li><b>Portal web:</b> landing y portal de airdrop, preparado para proveedores Web3.</li>
+    </ul>
+
+    <h3 id="wpes-4">4. Hoja de ruta</h3>
+    <p><b>Fase 1 — base y lanzamiento (completada):</b> despliegue del contrato en BNB Smart Chain, repositorio en GitHub y publicación del whitepaper, portal de airdrop e integración del Mini App, información del token en BscScan y verificación del logo.</p>
+    <p><b>Fase 2 — comunidad y expansión arcade (activa):</b> mecánicas arcade en la app (Match-3, sincronización de la tabla de clasificación), marketing inicial y colaboraciones con KOL, misiones de comunidad y <b>WRGP farming</b>.</p>
+    <p><b>Fase 3 — distribución del airdrop y listados (abril 2028 – julio 2028):</b> distribución oficial del airdrop a jugadores y miembros de la comunidad, listados en PancakeSwap (DEX) y CEX, seguimiento en CoinGecko y CoinMarketCap y conversión de puntos in-game a $WREC on-chain. El primer gran airdrop se distribuye a los jugadores <b>en la víspera del listado</b>.</p>
+    <p><b>Fase 4 — escalado a largo plazo (finales de 2028 y después):</b> staking ampliado y nuevas utilidades, desbloqueo del tesoro en <b>noviembre de 2028</b> y desarrollo de la nueva generación del ecosistema.</p>
+
+    <h3 id="wpes-5">5. Modelo sostenible de airdrop y recompensas cada 3 meses</h3>
+    <p>Cuando el token se lista en exchanges, el ecosistema pasa a un modelo cíclico. Las puntuaciones se reinician y los jugadores compiten en <b>temporadas de 3 meses</b>. El <b>75% de todos los ingresos por publicidad y juego</b> que genera la plataforma se distribuye como airdrop cada 3 meses según el puesto en la tabla de clasificación.</p>
+    <div class="wp-card">
+      <p><b>Importante:</b> este ciclo comienza <b>después del listado</b>; hoy no existe un calendario de pagos cada 3 meses. Antes del listado los jugadores acumulan puntos y WRGP, y el primer gran airdrop se paga en la víspera del listado.</p>
+    </div>
+
+    <p><b>Distribución mediante compras en el mercado:</b> cuando todos los tokens estén en circulación, las recompensas a los jugadores no se extraen de la oferta. Al final de cada temporada la plataforma destina el 75% de sus ingresos por publicidad y juego a comprar $WREC en el mercado abierto y reparte esos tokens como airdrop según la clasificación. El fondo de recompensas no infla la oferta circulante: el modelo se mantiene sostenible y las compras regulares ayudan al token a conservar su valor. El importe depende de los ingresos de la temporada y no es una rentabilidad fija ni garantizada.</p>
+<h3 id="wpes-6">6. Aviso legal</h3>
+    <p>$WREC es un token de utilidad destinado al uso dentro del ecosistema WatchRec. Participar en criptoactivos implica riesgos inherentes. Investiga por tu cuenta (DYOR) antes de participar en inversiones Web3. Nada de esta página es asesoramiento financiero.</p>
+  </article>
+  <article class="wp-doc" id="wpZh" hidden lang="zh">
+    <p class="wp-kicker">官方文档 · v1.0 · 2026</p>
+    <h1>$WREC（WatchRec）官方白皮书</h1>
+    <p>WatchRec（$WREC）是运行在 BNB Smart Chain（BEP-20）上、由社区驱动的 Web3 生态。它把 Telegram Mini App 街机游戏、社区任务与奖励分发机制结合起来，目标是构建一个可扩展、可持续的去中心化生态。</p>
+
+    <div class="wp-toc">
+      <a href="#wpzh-1">1 · 摘要</a><a href="#wpzh-2">2 · 代币经济</a><a href="#wpzh-3">3 · 基础设施</a>
+      <a href="#wpzh-4">4 · 路线图</a><a href="#wpzh-5">5 · 奖励模型</a><a href="#wpzh-6">6 · 免责声明</a>
+    </div>
+
+    <h3 id="wpzh-1">1. 执行摘要</h3>
+    <p>WatchRec 把游戏与收益建立在真实产品之上：玩家打开 Telegram 内的 Mini App，累积积分（WRGP），代币上线后这些积分将转换为链上的 $WREC。生态的核心是将平台<b>广告与游戏收入的 75%</b> 分配给玩家。因此奖励并不是从固定金库中消耗，而是来自每个赛季重新产生的真实收入。</p>
+
+    <h3 id="wpzh-2">2. 代币经济与分配</h3>
+    <ul>
+      <li><b>代币符号：</b> $WREC</li>
+      <li><b>总供应量：</b> 1,300,000,000 $WREC</li>
+      <li><b>网络：</b> BNB Smart Chain（BEP-20）</li>
+      <li><b>合约地址：</b> <span style="font-family:Consolas,monospace;font-size:13.5px">0x38eb8b7C8E1305fcc041E5e8E352fBB05F603Afb</span></li>
+    </ul>
+    <table class="wp-tbl">
+      <thead><tr><th>分配项目</th><th>比例</th><th>数量</th></tr></thead>
+      <tbody>
+        <tr><td>空投与游戏内奖励</td><td>35%</td><td>455,000,000</td></tr>
+        <tr><td>锁定金库与开发 <span style="color:#7f9db8">（锁定至 2028 年 11 月）</span></td><td>23.08%</td><td>300,000,000</td></tr>
+        <tr><td>预售 / 公开销售</td><td>10%</td><td>130,000,000</td></tr>
+        <tr><td>流动性池</td><td>15%</td><td>195,000,000</td></tr>
+        <tr><td>市场与生态增长</td><td>10%</td><td>130,000,000</td></tr>
+        <tr><td>团队与创始人</td><td>6.92%</td><td>90,000,000</td></tr>
+        <tr><td>合计</td><td>100%</td><td>1,300,000,000</td></tr>
+      </tbody>
+    </table>
+    <p><b>空投与游戏内奖励（35%）：</b>面向 Telegram Mini App 玩家、完成社区任务的用户、排行榜领先者以及推荐计划。</p>
+    <p><b>锁定金库与开发（23.08%）：</b>用于生态稳定与平台成长，<b>严格锁定至 2028 年 11 月</b>。</p>
+    <p><b>预售 / 公开销售（10%）：</b>用于早期支持者、启动流动性和社区预售。</p>
+    <p><b>流动性池（15%）：</b>为 PancakeSwap 及计划中的中心化交易所（CEX）上线提供交易流动性。</p>
+    <p><b>市场与生态增长（10%）：</b>用于营销活动、KOL 合作与用户获取。</p>
+    <p><b>团队与创始人（6.92%）：</b>支持核心团队与开发者的长期技术建设。</p>
+
+    <h3 id="wpzh-3">3. 架构与基础设施</h3>
+    <ul>
+      <li><b>Telegram Mini App 引擎：</b>在 Telegram 内即可访问 Web3 的游戏门户。</li>
+      <li><b>智能合约层：</b>部署在 BNB Smart Chain 的 BEP-20 合约，手续费低、结算快。</li>
+      <li><b>Web 门户：</b>宣传与空投门户，已为 Web3 钱包连接做好准备。</li>
+    </ul>
+
+    <h3 id="wpzh-4">4. 路线图</h3>
+    <p><b>第一阶段 — 基础与上线（已完成）：</b>智能合约部署至 BNB Smart Chain、GitHub 仓库与白皮书发布、空投门户与 Mini App 集成、BscScan 代币信息与标志验证。</p>
+    <p><b>第二阶段 — 社区与街机扩展（进行中）：</b>应用内街机玩法（Match-3、排行榜同步）、初期营销与 KOL 合作、社区任务与 <b>WRGP farming</b>。</p>
+    <p><b>第三阶段 — 空投分发与交易所上线（2028 年 4 月 – 2028 年 7 月）：</b>向玩家与社区成员进行<b>官方空投分发</b>、PancakeSwap（DEX）与 CEX 上线、CoinGecko 与 CoinMarketCap 收录、游戏内积分转换为链上 $WREC。首次大型空投将在<b>上线前夕</b>发放给玩家。</p>
+    <p><b>第四阶段 — 长期扩展（2028 年末及以后）：</b>扩展质押与应用场景、<b>2028 年 11 月</b>解锁金库，并推进新一代生态建设。</p>
+
+    <h3 id="wpzh-5">5. 可持续的 3 个月空投与奖励模型</h3>
+    <p>代币在交易所上线后，生态将转入循环模式。游戏积分重置，玩家在<b>3 个月的竞技赛季</b>中竞争。平台全部广告与游戏收入的 <b>75%</b> 每 3 个月按排行榜名次以空投形式发放给玩家。</p>
+    <div class="wp-card">
+      <p><b>重要：</b>该循环<b>在上线之后</b>才开始，目前并不存在每 3 个月付款的时间表。上线前玩家累积积分与 WRGP，首次大型空投在上线前夕发放。</p>
+    </div>
+
+    <p><b>通过市场回购分发：</b>当全部代币开始交易后，发放给玩家的空投奖励不会从总供应中划出。每个赛季结束时，平台将广告与游戏收入的 75% 用于在市场上买入 $WREC，并按排行榜名次分发给玩家。奖励池不会增加流通供应，模式因此保持可持续，定期的市场回购也有助于代币保值。回购金额取决于赛季收入，不构成固定或保证的回报。</p>
+<h3 id="wpzh-6">6. 免责声明</h3>
+    <p>$WREC 是用于 WatchRec 生态内的实用型代币。参与加密资产本身具有风险。参与 Web3 投资前请自行研究（DYOR）。本页信息不构成投资建议。</p>
+  </article>
+  <article class="wp-doc" id="wpKo" hidden lang="ko">
+    <p class="wp-kicker">공식 문서 · v1.0 · 2026</p>
+    <h1>$WREC(WatchRec) 공식 백서</h1>
+    <p>WatchRec($WREC)은 BNB Smart Chain(BEP-20)에서 운영되는 커뮤니티 중심 Web3 생태계입니다. Telegram Mini App 아케이드 게임, 커뮤니티 퀘스트, 보상 분배 메커니즘을 결합해 확장 가능하고 지속 가능한 탈중앙화 생태계를 구축하는 것을 목표로 합니다.</p>
+
+    <div class="wp-toc">
+      <a href="#wpko-1">1 · 요약</a><a href="#wpko-2">2 · 토큰노믹스</a><a href="#wpko-3">3 · 인프라</a>
+      <a href="#wpko-4">4 · 로드맵</a><a href="#wpko-5">5 · 보상 모델</a><a href="#wpko-6">6 · 면책 조항</a>
+    </div>
+
+    <h3 id="wpko-1">1. 요약</h3>
+    <p>WatchRec은 게임과 수익의 연결을 실제 제품 위에 구축합니다. 플레이어는 Telegram 안의 Mini App에 접속해 점수(WRGP)를 쌓고, 토큰이 상장된 뒤 그 노력이 온체인 $WREC으로 전환됩니다. 생태계의 핵심은 플랫폼의 <b>광고 및 게임 수익 75%</b>를 플레이어에게 분배하는 것입니다. 따라서 보상은 고정된 금고에서 소진되지 않고, 매 시즌 새로 창출되는 실제 수익에서 지급됩니다.</p>
+
+    <h3 id="wpko-2">2. 토큰노믹스 및 분배</h3>
+    <ul>
+      <li><b>토큰 심볼:</b> $WREC</li>
+      <li><b>총 공급량:</b> 1,300,000,000 $WREC</li>
+      <li><b>네트워크:</b> BNB Smart Chain(BEP-20)</li>
+      <li><b>컨트랙트 주소:</b> <span style="font-family:Consolas,monospace;font-size:13.5px">0x38eb8b7C8E1305fcc041E5e8E352fBB05F603Afb</span></li>
+    </ul>
+    <table class="wp-tbl">
+      <thead><tr><th>분배 항목</th><th>비율</th><th>수량</th></tr></thead>
+      <tbody>
+        <tr><td>에어드롭 및 게임 내 보상</td><td>35%</td><td>455,000,000</td></tr>
+        <tr><td>잠긴 트레저리 및 개발 <span style="color:#7f9db8">(2028년 11월까지 잠김)</span></td><td>23.08%</td><td>300,000,000</td></tr>
+        <tr><td>사전 판매 / 공개 판매</td><td>10%</td><td>130,000,000</td></tr>
+        <tr><td>유동성 풀</td><td>15%</td><td>195,000,000</td></tr>
+        <tr><td>마케팅 및 생태계 성장</td><td>10%</td><td>130,000,000</td></tr>
+        <tr><td>팀 및 창립자</td><td>6.92%</td><td>90,000,000</td></tr>
+        <tr><td>합계</td><td>100%</td><td>1,300,000,000</td></tr>
+      </tbody>
+    </table>
+    <p><b>에어드롭 및 게임 내 보상(35%):</b> Telegram Mini App 플레이어, 커뮤니티 퀘스트 참여자, 리더보드 상위권 및 추천 프로그램을 위한 물량입니다.</p>
+    <p><b>잠긴 트레저리 및 개발(23.08%):</b> 생태계 안정성과 플랫폼 성장을 위해 배정되었으며 <b>2028년 11월까지 엄격히 잠겨 있습니다</b>.</p>
+    <p><b>사전 판매 / 공개 판매(10%):</b> 초기 지지자, 초기 유동성 및 커뮤니티 사전 판매에 사용됩니다.</p>
+    <p><b>유동성 풀(15%):</b> PancakeSwap 및 예정된 중앙화 거래소(CEX) 상장 시 거래 유동성을 제공합니다.</p>
+    <p><b>마케팅 및 생태계 성장(10%):</b> 마케팅 캠페인, KOL 협업, 사용자 확보를 위한 물량입니다.</p>
+    <p><b>팀 및 창립자(6.92%):</b> 핵심 팀과 개발자의 장기 기술 작업을 지원합니다.</p>
+
+    <h3 id="wpko-3">3. 아키텍처 및 인프라</h3>
+    <ul>
+      <li><b>Telegram Mini App 엔진:</b> Telegram 안에서 Web3에 즉시 접근하는 게임 포털.</li>
+      <li><b>스마트 컨트랙트 계층:</b> BNB Smart Chain의 BEP-20으로 낮은 수수료와 빠른 정산을 제공합니다.</li>
+      <li><b>웹 포털:</b> Web3 연결을 준비한 소개 및 에어드롭 포털.</li>
+    </ul>
+
+    <h3 id="wpko-4">4. 로드맵</h3>
+    <p><b>1단계 — 기반 및 런칭(완료):</b> BNB Smart Chain 컨트랙트 배포, GitHub 저장소와 백서 공개, 에어드롭 포털 및 Mini App 통합, BscScan 토큰 정보와 로고 검증.</p>
+    <p><b>2단계 — 커뮤니티 및 아케이드 확장(진행 중):</b> 앱 내 아케이드 메커니즘(Match-3, 리더보드 동기화), 초기 마케팅과 KOL 협업, 커뮤니티 퀘스트 및 <b>WRGP farming</b>.</p>
+    <p><b>3단계 — 에어드롭 분배 및 거래소 상장(2028년 4월 – 2028년 7월):</b> 플레이어와 커뮤니티 구성원에게 <b>공식 에어드롭 분배</b>, PancakeSwap(DEX) 및 CEX 상장, CoinGecko와 CoinMarketCap 추적, 게임 내 점수의 온체인 $WREC 전환. 첫 대규모 에어드롭은 <b>상장 직전</b> 플레이어에게 지급됩니다.</p>
+    <p><b>4단계 — 장기 확장(2028년 말 이후):</b> 확장된 스테이킹과 사용처, <b>2028년 11월</b> 트레저리 잠금 해제, 차세대 생태계 개발.</p>
+
+    <h3 id="wpko-5">5. 지속 가능한 3개월 에어드롭 및 보상 모델</h3>
+    <p>토큰이 거래소에 상장되면 생태계는 순환 모델로 전환됩니다. 게임 점수가 초기화되고 플레이어는 <b>3개월 시즌</b>에서 경쟁합니다. 플랫폼의 모든 광고 및 게임 수익의 <b>75%</b>가 3개월마다 리더보드 순위에 따라 에어드롭으로 분배됩니다.</p>
+    <div class="wp-card">
+      <p><b>중요:</b> 이 주기는 <b>상장 이후</b> 시작됩니다. 오늘부터 운영되는 3개월 지급 일정은 없습니다. 상장 전에는 플레이어가 점수와 WRGP를 쌓고, 첫 대규모 에어드롭은 상장 직전에 지급됩니다.</p>
+    </div>
+
+    <p><b>시장 매수를 통한 분배:</b> 모든 토큰이 거래되기 시작한 뒤에도 플레이어에게 지급되는 보상은 총 공급량에서 차감되지 않습니다. 매 시즌 종료 시 플랫폼은 광고 및 게임 수익의 75%로 시장에서 $WREC을 매수하고, 이를 리더보드 순위에 따라 에어드롭으로 분배합니다. 보상 풀이 유통 물량을 늘리지 않아 모델이 지속 가능하며, 정기적인 시장 매수는 토큰 가치 유지에 기여합니다. 매수 금액은 시즌 수익에 따라 달라지며 고정되거나 보장된 수익이 아닙니다.</p>
+<h3 id="wpko-6">6. 면책 조항</h3>
+    <p>$WREC은 WatchRec 생태계 내 사용을 위해 설계된 유틸리티 토큰입니다. 암호화폐 자산 참여는 본질적으로 위험을 수반합니다. Web3 투자에 참여하기 전에 스스로 조사하십시오(DYOR). 이 페이지의 정보는 투자 조언이 아닙니다.</p>
+  </article>
+
+</div>
+
+<script>
+const I18N={"en": {"wp.local": "Read on site", "foot.gh": "GitHub repository", "wp.close": "Close", "wp.kick": "Official document · v1.0 · 2026", "wp.src": "Source: the official WHITEPAPER.md in the project GitHub repository — you can always verify the original text there.", "wp.official": "Open the official English whitepaper on GitHub →", "nav.tok": "Tokenomics", "nav.road": "Roadmap", "nav.rev": "Reward Model", "nav.faq": "FAQ", "nav.play": "Play Now", "hero.h1a": "On BNB Chain,", "hero.h1b": "play and earn.", "hero.h1bk": "", "hero.tag": "WATCHREC • WATCH, EARN, REPEAT", "hero.h1b2": "", "hero.h1a2": "", "hero.p": "", "lang.note": "", "hero.lead": "WatchRec is a Telegram Mini App arcade game and the $WREC BEP-20 token powered by a sustainable 3-month airdrop cycle that shares 75% of revenue with players.", "hero.cta1": "Play the Telegram Game", "hero.cta2": "Whitepaper", "hero.ca": "Contract Address · BEP-20", "hero.copy": "COPY", "tok.title": "Tokenomics", "tok.total": "1.3 BILLION $WREC", "tok.airdropShort": "Airdrop", "tok.l1": "Airdrop &amp; In-Game", "tok.l2": "Locked Treasury", "tok.l3": "Pre / Public Sale", "tok.l4": "Liquidity Pool", "tok.l5": "Marketing", "tok.l6": "Team &amp; Founders", "tok.lock": "Locked treasury · November 2028", "st.1": "Total Supply", "st.2": "Network", "st.3": "Revenue Share", "st.4": "Reward Cycle", "st.4v": "3-Month Season", "note.t": "Rewards do not start today: listing first, then the 3-month cycle", "note.p": "The 3-month airdrop cycle <b>only starts after $WREC is listed on exchanges</b>. Before listing, in-game scores and <b>WRGP</b> keep accumulating, but token distribution happens with the first major airdrop close to listing day. The claim that payments are made every 3 months from today is <b>not true</b>.", "note.c1": "Listing: Phase 3 · Apr–Jul 2028", "note.c2": "First airdrop: close to listing", "note.c3": "Locked treasury: Nov 2028", "tok.eyebrow": "TOKEN DISTRIBUTION", "tok.h2": "How are 1.3 billion $WREC distributed?", "tok.p": "The largest share goes straight to players: airdrop and in-game rewards make up 35% of total supply. The treasury share stays locked until November 2028.", "tok.supply": "Total Supply", "tok.note": "Allocation percentages add up to 100%.", "tok.r1": "Airdrop &amp; In-Game Rewards", "tok.r1s": "3-month season rewards and the first major airdrop", "tok.r2": "Locked Treasury &amp; Development", "tok.r2s": "Locked until November 2028", "tok.r3": "Pre-Sale / Public Sale", "tok.r3s": "Community sale before listing", "tok.r4": "Liquidity Pool", "tok.r4s": "Exchange liquidity and price stability", "tok.r5": "Marketing &amp; Ecosystem Growth", "tok.r5s": "Ads, partnerships, growth", "tok.r6": "Team &amp; Founders", "tok.r6s": "Long-term development share", "road.eyebrow": "TIMELINE", "road.h2": "Roadmap", "road.p": "Four phases from contract deployment to treasury unlock — every date is public and verifiable.", "road.p1": "Phase 1 — Smart Contract &amp; Whitepaper", "road.p1w": "Completed", "road.done": "Completed", "road.p1d": "The BEP-20 smart contract was deployed on BNB Smart Chain and the whitepaper repository was published on GitHub.", "road.p2": "Phase 2 — Telegram Mini App Arcade", "road.p2w": "Active now", "road.act": "Active", "road.p2d": "The arcade game runs inside Telegram and <b>WRGP farming</b> is live. Scores are recorded for the seasons that start after listing.", "road.p3": "Phase 3 — Airdrop &amp; Exchange Listings", "road.p3w": "April – July 2028", "road.next": "Planned", "road.p3d": "Exchange listings follow and the <b>first major airdrop</b> is distributed to players close to listing day. The 3-month revenue-share cycle begins from this point, not before.", "road.p4": "Phase 4 — Locked Treasury Release", "road.p4w": "November 2028", "road.p4d": "The treasury and development allocation unlocks and is used gradually for ecosystem growth and long-term development.", "rev.eyebrow": "SUSTAINABLE REWARD MODEL", "rev.h2": "A Sustainable 3-Month Airdrop and Reward Model", "rev.p1": "Once the token is listed on exchanges, the ecosystem moves to a powerful cyclic model: game scores reset and players compete in <b>3-month seasons</b>. <b>75%</b> of all ad and gaming revenue is airdropped to players every season based on their leaderboard rank.", "rev.p2": "Rewards do not come from a fixed treasury; they come from <b>real revenue</b> that the platform regenerates every season. That creates lasting sustainability and genuine utility for the token.", "rev.c1": "Exchange listing", "rev.c2": "3-month season", "rev.c3": "Scores reset", "rev.c4": "75% of revenue", "rev.c5": "Airdrop distribution", "rev.cap": "Ad &amp; game revenue to players", "rev.s1t": "01 · SEASON", "rev.s1d": "Scores reset, a new 3-month season opens and players compete on the leaderboard.", "rev.s2t": "02 · REVENUE", "rev.s2d": "75% of the ad and gaming revenue generated during the season goes into the reward pool.", "rev.s3t": "03 · AIRDROP", "rev.s3d": "The pool is distributed to player wallets every 3 months according to leaderboard rank.", "rev.after": "This cycle starts after listing day: before that players accumulate points and WRGP, and the first major airdrop is distributed close to listing day.", "faq.eyebrow": "FREQUENTLY ASKED QUESTIONS", "faq.h2": "When does the airdrop start?", "faq.p": "The key point: rewards start after the exchange listing, not today.", "faq.q1": "Is the airdrop already paid every 3 months from today?", "faq.a1": "No. The 3-month reward cycle <b>only starts after $WREC is listed on exchanges</b>. Until then in-game scores and WRGP keep accumulating, and token distribution happens with the first major airdrop near listing day.", "faq.q2": "When is the first major airdrop?", "faq.a2": "According to the roadmap, listing is planned in <b>Phase 3</b>, between April and July 2028. The first major airdrop is distributed close to listing day; the exact date will be announced on official channels.", "faq.q3": "How is the 75% revenue share calculated?", "faq.a3": "75% of all ad and gaming revenue is moved into a reward pool at the end of each season and distributed to players by <b>leaderboard rank</b>. The remaining 25% covers development, infrastructure and marketing.", "faq.q4": "When does the locked treasury unlock?", "faq.a4": "300,000,000 $WREC (23.08% of total supply) is <b>locked until November 2028</b> and released gradually.", "faq.q5": "Is this a scam or an empty project?", "faq.a5": "The smart contract is deployed on BNB Smart Chain, the whitepaper is public on GitHub and the contract address is published on this site so anyone can verify it. The reward model is tied to <b>real ad and game revenue</b>, not to fixed promises.", "faq.q6": "How do I join?", "faq.a6": "Just open the game through <b>WatchRecGameBot</b> on Telegram. Your scores are recorded for the season automatically, and after listing rewards are sent to your wallet.", "foot.about": "A gaming ecosystem on BNB Smart Chain, growing through a Telegram Mini App arcade game and a sustainable airdrop model that shares 75% of revenue.", "foot.proj": "Project", "foot.wp": "Whitepaper", "foot.game": "Game Bot", "foot.ver": "Verification", "foot.ca": "Contract Address · BEP-20", "foot.rights": "All rights reserved.", "foot.disc": "Disclaimer: The information on this page is not investment advice. Crypto assets carry high risk; do your own research. The token distribution schedule depends on the listing process and may change.", "bb.h": "Distribution through market purchases (buy-back)", "bb.sub": "Airdrop tokens are not taken from supply — they are bought from the market every season", "bb.p1": "Once all tokens are in circulation and $WREC is trading, the rewards paid to players who play to earn airdrops are <b>not taken from supply</b>. At the end of every season the platform uses <b>75%</b> of its ad and game revenue to <b>buy $WREC on the open market</b>, and those tokens are airdropped to our players according to their leaderboard ranking.", "bb.p2": "This approach delivers two results at once: because the reward pool does not inflate circulating supply, the model stays <b>sustainable</b>; and because purchases happen on the market regularly, it helps the token <b>preserve its value</b>. A player's reward therefore rests on real revenue generated by the project and on real market demand.", "bb.f1": "Ad &amp; game revenue", "bb.f2": "75% of revenue", "bb.f3": "$WREC bought on the market", "bb.f4": "Airdrop to players", "bb.note": "Note: this mechanism also starts after listing, together with the 3-month season cycle. The purchase amount depends on season revenue; it is not a fixed or guaranteed return."}, "es": {"wp.local": "Leer en el sitio", "foot.gh": "Repositorio GitHub", "wp.close": "Cerrar", "wp.kick": "Documento oficial · v1.0 · 2026", "wp.src": "Fuente: el WHITEPAPER.md oficial del repositorio de GitHub del proyecto; siempre puedes verificar el texto original allí.", "wp.official": "Abrir el whitepaper oficial en inglés en GitHub →", "nav.tok": "Tokenomics", "nav.road": "Hoja de ruta", "nav.rev": "Modelo de recompensas", "nav.faq": "Preguntas", "nav.play": "Jugar ahora", "hero.h1a": "En BNB Chain,", "hero.h1b": "juega y gana.", "hero.tag": "BSC · ECOSISTEMA DE JUEGO NEÓN", "hero.lead": "WatchRec es un juego arcade Mini App de Telegram y el token BEP-20 $WREC que funciona con un ciclo de airdrop sostenible de 3 meses que reparte el 75% de los ingresos con los jugadores.", "hero.cta1": "Juega el juego de Telegram", "hero.cta2": "Whitepaper", "hero.ca": "Dirección del contrato · BEP-20", "hero.copy": "COPIAR", "tok.title": "Tokenomics", "tok.total": "1.3 MIL MILLONES $WREC", "tok.airdropShort": "Airdrop", "tok.l1": "Airdrop y juego", "tok.l2": "Tesorería bloqueada", "tok.l3": "Preventa / venta pública", "tok.l4": "Fondo de liquidez", "tok.l5": "Marketing", "tok.l6": "Equipo y fundadores", "tok.lock": "Tesorería bloqueada · Noviembre 2028", "st.1": "Suministro total", "st.2": "Red", "st.3": "Reparto de ingresos", "st.4": "Ciclo de recompensas", "st.4v": "Temporada de 3 meses", "note.t": "Las recompensas no empiezan hoy: primero el listado, después el ciclo de 3 meses", "note.p": "El ciclo de airdrop de 3 meses <b>solo comienza después de que $WREC se cotice en exchanges</b>. Antes del listado siguen acumulándose las puntuaciones del juego y <b>WRGP</b>, pero la distribución de tokens se realiza con el primer gran airdrop, cerca del día del listado. La afirmación de que se paga cada 3 meses desde hoy <b>no es cierta</b>.", "note.c1": "Listado: Fase 3 · abr–jul 2028", "note.c2": "Primer airdrop: cerca del listado", "note.c3": "Tesorería bloqueada: nov 2028", "tok.eyebrow": "DISTRIBUCIÓN DEL TOKEN", "tok.h2": "¿Cómo se distribuyen 1.3 mil millones de $WREC?", "tok.p": "La mayor parte va directamente a los jugadores: el airdrop y las recompensas del juego suman el 35% del suministro. La tesorería permanece bloqueada hasta noviembre de 2028.", "tok.supply": "Suministro total", "tok.note": "Los porcentajes suman exactamente 100%.", "tok.r1": "Airdrop y recompensas del juego", "tok.r1s": "Recompensas de temporada y el primer gran airdrop", "tok.r2": "Tesorería bloqueada y desarrollo", "tok.r2s": "Bloqueada hasta noviembre de 2028", "tok.r3": "Preventa / venta pública", "tok.r3s": "Venta comunitaria antes del listado", "tok.r4": "Fondo de liquidez", "tok.r4s": "Liquidez del exchange y estabilidad del precio", "tok.r5": "Marketing y crecimiento del ecosistema", "tok.r5s": "Publicidad, alianzas, crecimiento", "tok.r6": "Equipo y fundadores", "tok.r6s": "Participación de desarrollo a largo plazo", "road.eyebrow": "CRONOLOGÍA", "road.h2": "Hoja de ruta", "road.p": "Cuatro fases desde el despliegue del contrato hasta la liberación de la tesorería: todas las fechas son públicas y verificables.", "road.p1": "Fase 1 — Contrato inteligente y whitepaper", "road.p1w": "Completada", "road.done": "Completada", "road.p1d": "El contrato inteligente BEP-20 se desplegó en BNB Smart Chain y el repositorio del whitepaper se publicó en GitHub.", "road.p2": "Fase 2 — Arcade Mini App de Telegram", "road.p2w": "Activa", "road.act": "Activa", "road.p2d": "El juego arcade funciona dentro de Telegram y el <b>farming de WRGP</b> está activo. Las puntuaciones se registran para las temporadas que empiezan tras el listado.", "road.p3": "Fase 3 — Airdrop y listados en exchanges", "road.p3w": "Abril – Julio 2028", "road.next": "Planificada", "road.p3d": "Siguen los listados en exchanges y el <b>primer gran airdrop</b> se distribuye a los jugadores cerca del día del listado. El ciclo de reparto de ingresos de 3 meses empieza en ese momento, no antes.", "road.p4": "Fase 4 — Liberación de la tesorería", "road.p4w": "Noviembre 2028", "road.p4d": "Se libera la asignación de tesorería y desarrollo, que se utiliza de forma gradual para el crecimiento del ecosistema.", "rev.eyebrow": "MODELO DE RECOMPENSAS SOSTENIBLE", "rev.h2": "Modelo sostenible de airdrop y recompensas cada 3 meses", "rev.p1": "Cuando el token se cotice en exchanges, el ecosistema pasa a un modelo cíclico: las puntuaciones se reinician y los jugadores compiten en <b>temporadas de 3 meses</b>. El <b>75%</b> de todos los ingresos por publicidad y juego se reparte como airdrop a los jugadores al final de cada temporada según su posición en la clasificación.", "rev.p2": "Las recompensas no salen de una tesorería fija, sino de los <b>ingresos reales</b> que la plataforma regenera cada temporada. Eso crea sostenibilidad duradera y utilidad real para el token.", "rev.c1": "Listado en exchange", "rev.c2": "Temporada de 3 meses", "rev.c3": "Se reinician las puntuaciones", "rev.c4": "75% de los ingresos", "rev.c5": "Distribución del airdrop", "rev.cap": "Ingresos de publicidad y juego para los jugadores", "rev.s1t": "01 · TEMPORADA", "rev.s1d": "Las puntuaciones se reinician, se abre una nueva temporada de 3 meses y los jugadores compiten en la clasificación.", "rev.s2t": "02 · INGRESOS", "rev.s2d": "El 75% de los ingresos por publicidad y juego de la temporada pasa al fondo de recompensas.", "rev.s3t": "03 · AIRDROP", "rev.s3d": "El fondo se distribuye a las carteras de los jugadores cada 3 meses según su posición en la clasificación.", "rev.after": "Este ciclo comienza después del listado: antes, los jugadores acumulan puntos y WRGP, y el primer gran airdrop se distribuye cerca del día del listado.", "faq.eyebrow": "PREGUNTAS FRECUENTES", "faq.h2": "¿Cuándo empieza el airdrop?", "faq.p": "El punto clave: las recompensas empiezan después del listado, no hoy.", "faq.q1": "¿El airdrop ya se paga cada 3 meses desde hoy?", "faq.a1": "No. El ciclo de recompensas de 3 meses <b>solo comienza después de que $WREC se cotice en exchanges</b>. Hasta entonces se acumulan puntuaciones y WRGP, y la distribución de tokens se hace con el primer gran airdrop, cerca del listado.", "faq.q2": "¿Cuándo es el primer gran airdrop?", "faq.a2": "Según la hoja de ruta, el listado está previsto en la <b>Fase 3</b>, entre abril y julio de 2028. El primer gran airdrop se distribuye cerca del día del listado; la fecha exacta se anunciará en los canales oficiales.", "faq.q3": "¿Cómo se calcula el 75% de los ingresos?", "faq.a3": "El 75% de los ingresos por publicidad y juego se transfiere a un fondo de recompensas al final de cada temporada y se distribuye según la <b>clasificación</b>. El 25% restante cubre desarrollo, infraestructura y marketing.", "faq.q4": "¿Cuándo se desbloquea la tesorería?", "faq.a4": "300.000.000 $WREC (23,08% del suministro) está <b>bloqueado hasta noviembre de 2028</b> y se libera de forma gradual.", "faq.q5": "¿Es una estafa o un proyecto vacío?", "faq.a5": "El contrato inteligente está desplegado en BNB Smart Chain, el whitepaper es público en GitHub y la dirección del contrato se publica en este sitio para que cualquiera pueda verificarla. El modelo de recompensas depende de <b>ingresos reales</b>, no de promesas fijas.", "faq.q6": "¿Cómo participo?", "faq.a6": "Solo abre el juego a través de <b>WatchRecGameBot</b> en Telegram. Tus puntuaciones se registran automáticamente y, tras el listado, las recompensas se envían a tu cartera.", "foot.about": "Un ecosistema de juego en BNB Smart Chain que crece con un arcade Mini App de Telegram y un modelo de airdrop sostenible que reparte el 75% de los ingresos.", "foot.proj": "Proyecto", "foot.wp": "Whitepaper", "foot.game": "Bot del juego", "foot.ver": "Verificación", "foot.ca": "Dirección del contrato · BEP-20", "foot.rights": "Todos los derechos reservados.", "foot.disc": "Aviso legal: la información de esta página no es asesoramiento de inversión. Los criptoactivos conllevan alto riesgo; investiga por tu cuenta. El calendario de distribución depende del proceso de listado y puede cambiar.", "bb.h": "Distribución mediante compra en el mercado (buy-back)", "bb.sub": "Los tokens del airdrop no salen de la emisión: se compran en el mercado cada temporada", "bb.p1": "Cuando todos los tokens estén en circulación y $WREC cotice, las recompensas que se pagan a los jugadores que juegan para recibir airdrops <b>no se extraen de la oferta</b>. Al final de cada temporada la plataforma destina el <b>75%</b> de sus ingresos por publicidad y juego a <b>comprar $WREC en el mercado abierto</b>, y esos tokens se reparten como airdrop entre nuestros jugadores según su posición en la clasificación.", "bb.p2": "Este enfoque aporta dos resultados a la vez: como el fondo de recompensas no infla la oferta circulante, el modelo se mantiene <b>sostenible</b>; y como las compras se realizan en el mercado de forma regular, ayuda al token a <b>conservar su valor</b>. La ganancia del jugador se apoya en ingresos reales del proyecto y en la demanda real del mercado.", "bb.f1": "Ingresos de publicidad y juego", "bb.f2": "75% de los ingresos", "bb.f3": "Compra de $WREC en el mercado", "bb.f4": "Airdrop a los jugadores", "bb.note": "Nota: este mecanismo también comienza después del listado, junto con el ciclo de temporadas de 3 meses. El importe de la compra depende de los ingresos de la temporada; no es una rentabilidad fija ni garantizada."}, "ru": {"wp.local": "Читать на сайте", "foot.gh": "Репозиторий GitHub", "wp.close": "Закрыть", "wp.kick": "Официальный документ · v1.0 · 2026", "wp.src": "Источник: официальный WHITEPAPER.md в репозитории проекта на GitHub — оригинал всегда можно проверить там.", "wp.official": "Открыть официальный whitepaper на GitHub →", "nav.tok": "Токеномика", "nav.road": "Дорожная карта", "nav.rev": "Модель наград", "nav.faq": "Вопросы", "nav.play": "Играть", "hero.h1a": "В сети BNB Chain", "hero.h1b": "играй и зарабатывай.", "hero.tag": "BSC · НЕОНОВАЯ ИГРОВАЯ ЭКОСИСТЕМА", "hero.lead": "WatchRec — аркадная Mini App игра в Telegram и токен BEP-20 $WREC, работающий на устойчивой модели эйрдропа каждые 3 месяца, которая отдаёт игрокам 75% доходов.", "hero.cta1": "Играть в Telegram", "hero.cta2": "Whitepaper", "hero.ca": "Адрес контракта · BEP-20", "hero.copy": "КОПИРОВАТЬ", "tok.title": "Токеномика", "tok.total": "1,3 МЛРД $WREC", "tok.airdropShort": "Эйрдроп", "tok.l1": "Эйрдроп и игра", "tok.l2": "Закрытое казначейство", "tok.l3": "Препродажа / публичная продажа", "tok.l4": "Пул ликвидности", "tok.l5": "Маркетинг", "tok.l6": "Команда и основатели", "tok.lock": "Казначейство заблокировано · ноябрь 2028", "st.1": "Общий объём", "st.2": "Сеть", "st.3": "Доля доходов", "st.4": "Цикл наград", "st.4v": "Сезон 3 месяца", "note.t": "Награды начинаются не сегодня: сначала листинг, затем 3-месячный цикл", "note.p": "3-месячный цикл эйрдропа <b>начинается только после листинга $WREC на биржах</b>. До листинга игровые очки и <b>WRGP</b> продолжают накапливаться, но распределение токенов происходит вместе с первым крупным эйрдропом незадолго до дня листинга. Утверждение, что выплаты идут каждые 3 месяца уже с сегодняшнего дня, <b>неверно</b>.", "note.c1": "Листинг: фаза 3 · апрель–июль 2028", "note.c2": "Первый эйрдроп: к дате листинга", "note.c3": "Казначейство: ноябрь 2028", "tok.eyebrow": "РАСПРЕДЕЛЕНИЕ ТОКЕНА", "tok.h2": "Как распределяются 1,3 млрд $WREC?", "tok.p": "Самая большая доля сразу идёт игрокам: эйрдроп и игровые награды составляют 35% объёма. Доля казначейства заблокирована до ноября 2028 года.", "tok.supply": "Общий объём", "tok.note": "Сумма долей ровно 100%.", "tok.r1": "Эйрдроп и игровые награды", "tok.r1s": "Награды сезонов и первый крупный эйрдроп", "tok.r2": "Закрытое казначейство и разработка", "tok.r2s": "Заблокировано до ноября 2028", "tok.r3": "Препродажа / публичная продажа", "tok.r3s": "Продажа сообществу до листинга", "tok.r4": "Пул ликвидности", "tok.r4s": "Ликвидность биржи и стабильность цены", "tok.r5": "Маркетинг и рост экосистемы", "tok.r5s": "Реклама, партнёрства, рост", "tok.r6": "Команда и основатели", "tok.r6s": "Долгосрочная доля разработки", "road.eyebrow": "ХРОНОЛОГИЯ", "road.h2": "Дорожная карта", "road.p": "Четыре фазы от развёртывания контракта до разблокировки казначейства — все даты публичны и проверяемы.", "road.p1": "Фаза 1 — Смарт-контракт и whitepaper", "road.p1w": "Завершено", "road.done": "Готово", "road.p1d": "Смарт-контракт BEP-20 развёрнут в BNB Smart Chain, репозиторий whitepaper опубликован на GitHub.", "road.p2": "Фаза 2 — Аркада Mini App в Telegram", "road.p2w": "Активна", "road.act": "Активна", "road.p2d": "Аркада работает внутри Telegram, <b>фарминг WRGP</b> запущен. Очки фиксируются для сезонов, которые начнутся после листинга.", "road.p3": "Фаза 3 — Эйрдроп и листинги на биржах", "road.p3w": "Апрель – июль 2028", "road.next": "Планируется", "road.p3d": "Затем следуют листинги на биржах, а <b>первый крупный эйрдроп</b> распределяется среди игроков к дате листинга. 3-месячный цикл распределения доходов начинается с этого момента, не раньше.", "road.p4": "Фаза 4 — Разблокировка казначейства", "road.p4w": "Ноябрь 2028", "road.p4d": "Доля казначейства и разработки разблокируется и постепенно используется для роста экосистемы.", "rev.eyebrow": "УСТОЙЧИВАЯ МОДЕЛЬ НАГРАД", "rev.h2": "Устойчивая модель эйрдропа и наград каждые 3 месяца", "rev.p1": "После листинга токена на биржах экосистема переходит к цикличной модели: игровые очки сбрасываются, а игроки соревнуются в <b>сезонах по 3 месяца</b>. <b>75%</b> всех доходов от рекламы и игры в конце каждого сезона распределяются как эйрдроп по позициям в таблице лидеров.", "rev.p2": "Награды берутся не из фиксированного казначейства, а из <b>реального дохода</b>, который платформа создаёт каждый сезон. Это даёт долгосрочную устойчивость и реальную полезность токена.", "rev.c1": "Листинг", "rev.c2": "Сезон 3 месяца", "rev.c3": "Сброс очков", "rev.c4": "75% дохода", "rev.c5": "Выплата эйрдропа", "rev.cap": "Доход от рекламы и игры — игрокам", "rev.s1t": "01 · СЕЗОН", "rev.s1d": "Очки сбрасываются, открывается новый 3-месячный сезон, игроки соревнуются в таблице лидеров.", "rev.s2t": "02 · ДОХОД", "rev.s2d": "75% доходов от рекламы и игры за сезон направляются в призовой пул.", "rev.s3t": "03 · ЭЙРДРОП", "rev.s3d": "Пул распределяется на кошельки игроков каждые 3 месяца по позиции в таблице лидеров.", "rev.after": "Этот цикл начинается после листинга: до этого игроки накапливают очки и WRGP, а первый крупный эйрдроп выплачивается к дате листинга.", "faq.eyebrow": "ЧАСТЫЕ ВОПРОСЫ", "faq.h2": "Когда начинается эйрдроп?", "faq.p": "Главное: награды начинаются после листинга, а не сегодня.", "faq.q1": "Эйрдроп уже выплачивается каждые 3 месяца с сегодняшнего дня?", "faq.a1": "Нет. 3-месячный цикл наград <b>начинается только после листинга $WREC на биржах</b>. До этого накапливаются очки и WRGP, а распределение токенов идёт с первым крупным эйрдропом к дате листинга.", "faq.q2": "Когда первый крупный эйрдроп?", "faq.a2": "По дорожной карте листинг планируется в <b>фазе 3</b>, с апреля по июль 2028 года. Первый крупный эйрдроп распределяется к дате листинга; точная дата будет объявлена в официальных каналах.", "faq.q3": "Как рассчитывается 75% дохода?", "faq.a3": "75% доходов от рекламы и игры в конце каждого сезона переводятся в призовой пул и распределяются по <b>таблице лидеров</b>. Остальные 25% идут на разработку, инфраструктуру и маркетинг.", "faq.q4": "Когда разблокируется казначейство?", "faq.a4": "300 000 000 $WREC (23,08% объёма) <b>заблокированы до ноября 2028</b> и освобождаются постепенно.", "faq.q5": "Это скам или пустой проект?", "faq.a5": "Смарт-контракт развёрнут в BNB Smart Chain, whitepaper открыт на GitHub, а адрес контракта опубликован на сайте для проверки. Модель наград привязана к <b>реальному доходу</b>, а не к фиксированным обещаниям.", "faq.q6": "Как участвовать?", "faq.a6": "Просто открой игру через <b>WatchRecGameBot</b> в Telegram. Очки автоматически идут в сезон, а после листинга награды отправляются на твой кошелёк.", "foot.about": "Игровая экосистема в BNB Smart Chain, которая растёт за счёт аркады Mini App в Telegram и устойчивой модели эйрдропа с долей 75% доходов.", "foot.proj": "Проект", "foot.wp": "Whitepaper", "foot.game": "Бот игры", "foot.ver": "Проверка", "foot.ca": "Адрес контракта · BEP-20", "foot.rights": "Все права защищены.", "foot.disc": "Отказ от ответственности: информация на этой странице не является инвестиционной рекомендацией. Криптоактивы связаны с высоким риском; проведите собственное исследование. График распределения зависит от процесса листинга и может измениться.", "bb.h": "Распределение через выкуп с рынка (buy-back)", "bb.sub": "Токены для эйрдропа не берутся из эмиссии — они покупаются на рынке каждый сезон", "bb.p1": "Когда все токены выходят на рынок и $WREC начинает торговаться, награды игрокам, которые играют ради эйрдропа, <b>не вырезаются из общего предложения</b>. В конце каждого сезона платформа направляет <b>75%</b> доходов от рекламы и игры на <b>покупку $WREC на открытом рынке</b>, и эти токены распределяются среди наших игроков как эйрдроп по их месту в таблице лидеров.", "bb.p2": "Такой подход даёт сразу два результата: призовой пул не раздувает предложение в обращении, поэтому модель остаётся <b>устойчивой</b>; а регулярные покупки на рынке помогают токену <b>сохранять стоимость</b>. Заработок игрока опирается на реальный доход проекта и на реальный рыночный спрос.", "bb.f1": "Доход от рекламы и игры", "bb.f2": "75% дохода", "bb.f3": "Покупка $WREC на рынке", "bb.f4": "Эйрдроп игрокам", "bb.note": "Примечание: этот механизм также запускается после листинга, вместе с 3-месячным циклом сезонов. Сумма покупки зависит от дохода сезона; это не фиксированная и не гарантированная доходность."}, "zh": {"wp.local": "在站内阅读", "foot.gh": "GitHub 仓库", "wp.close": "关闭", "wp.kick": "官方文件 · v1.0 · 2026", "wp.src": "来源：项目 GitHub 仓库中的官方 WHITEPAPER.md，可随时核对原文。", "wp.official": "在 GitHub 打开官方英文白皮书 →", "nav.tok": "代币经济", "nav.road": "路线图", "nav.rev": "奖励模型", "nav.faq": "常见问题", "nav.play": "开始游戏", "hero.h1a": "在 BNB Chain 上", "hero.h1b": "边玩边赚。", "hero.tag": "BSC · 霓虹游戏生态", "hero.lead": "WatchRec 是 Telegram 小程序街机游戏，也是 BEP-20 代币 $WREC：基于可持续的 3 个月空投周期，将 75% 的收入回馈给玩家。", "hero.cta1": "玩 Telegram 游戏", "hero.cta2": "白皮书", "hero.ca": "合约地址 · BEP-20", "hero.copy": "复制", "tok.title": "代币经济", "tok.total": "13 亿 $WREC", "tok.airdropShort": "空投", "tok.l1": "空投与游戏内奖励", "tok.l2": "锁定金库", "tok.l3": "预售 / 公售", "tok.l4": "流动性池", "tok.l5": "营销", "tok.l6": "团队与创始人", "tok.lock": "锁定金库 · 2028 年 11 月", "st.1": "总供应量", "st.2": "网络", "st.3": "收入分成", "st.4": "奖励周期", "st.4v": "3 个月赛季", "note.t": "奖励不是从现在开始：先上架，再进入 3 个月周期", "note.p": "3 个月空投周期<b>只有在 $WREC 上线交易所后才开始</b>。上架前，游戏积分与 <b>WRGP</b> 继续累积，代币分发将在上架前后的首次大型空投中进行。所谓“从今天起每 3 个月发放一次”的说法<b>并不正确</b>。", "note.c1": "上架：第 3 阶段 · 2028 年 4–7 月", "note.c2": "首次空投：临近上架", "note.c3": "锁定金库：2028 年 11 月", "tok.eyebrow": "代币分配", "tok.h2": "13 亿 $WREC 如何分配？", "tok.p": "最大份额直接分配给玩家：空投与游戏内奖励占总供应量的 35%。金库份额锁定至 2028 年 11 月。", "tok.supply": "总供应量", "tok.note": "各项比例合计正好 100%。", "tok.r1": "空投与游戏内奖励", "tok.r1s": "3 个月赛季奖励与首次大型空投", "tok.r2": "锁定金库与开发", "tok.r2s": "锁定至 2028 年 11 月", "tok.r3": "预售 / 公售", "tok.r3s": "上架前的社区销售", "tok.r4": "流动性池", "tok.r4s": "交易所流动性与价格稳定", "tok.r5": "营销与生态增长", "tok.r5s": "广告、合作与增长", "tok.r6": "团队与创始人", "tok.r6s": "长期开发份额", "road.eyebrow": "时间线", "road.h2": "路线图", "road.p": "从合约部署到金库解锁的四个阶段，所有日期都公开可查。", "road.p1": "第 1 阶段 — 智能合约与白皮书", "road.p1w": "已完成", "road.done": "已完成", "road.p1d": "BEP-20 智能合约已部署在 BNB Smart Chain，白皮书仓库已在 GitHub 发布。", "road.p2": "第 2 阶段 — Telegram 小程序街机", "road.p2w": "进行中", "road.act": "进行中", "road.p2d": "街机游戏已在 Telegram 内运行，<b>WRGP 挖矿</b>已上线。积分为上架后开始的赛季记录。", "road.p3": "第 3 阶段 — 空投与交易所上架", "road.p3w": "2028 年 4 月 – 7 月", "road.next": "计划中", "road.p3d": "随后进行交易所上架，<b>首次大型空投</b>将在上架前后发放给玩家。3 个月收入分成周期从此时开始，而不是更早。", "road.p4": "第 4 阶段 — 金库解锁", "road.p4w": "2028 年 11 月", "road.p4d": "金库与开发份额解锁，并逐步用于生态增长与长期开发。", "rev.eyebrow": "可持续奖励模型", "rev.h2": "可持续的 3 个月空投与奖励模型", "rev.p1": "代币上线交易所后，生态将进入循环模式：游戏积分重置，玩家在<b>每 3 个月一个赛季</b>中竞争。所有广告与游戏收入的 <b>75%</b> 将在每个赛季结束时按排行榜名次以空投形式发放给玩家。", "rev.p2": "奖励并非来自固定金库，而是来自平台每个赛季重新产生的<b>真实收入</b>。这带来长期可持续性，也让代币具有真实用途。", "rev.c1": "交易所上架", "rev.c2": "3 个月赛季", "rev.c3": "积分重置", "rev.c4": "收入的 75%", "rev.c5": "空投发放", "rev.cap": "广告与游戏收入回馈玩家", "rev.s1t": "01 · 赛季", "rev.s1d": "积分重置，新的 3 个月赛季开启，玩家在排行榜上竞争。", "rev.s2t": "02 · 收入", "rev.s2d": "赛季内产生的广告与游戏收入的 75% 进入奖励池。", "rev.s3t": "03 · 空投", "rev.s3d": "奖励池每 3 个月按排行榜名次发放到玩家钱包。", "rev.after": "该周期在上架后开始：在此之前玩家累积积分与 WRGP，首次大型空投将在上架前后发放。", "faq.eyebrow": "常见问题", "faq.h2": "空投何时开始？", "faq.p": "关键点：奖励在上架后开始，而不是今天。", "faq.q1": "现在已经每 3 个月发放空投了吗？", "faq.a1": "不是。3 个月奖励周期<b>只有在 $WREC 上线交易所后才开始</b>。在此之前积分与 WRGP 继续累积，代币分发将在上架前后的首次大型空投中进行。", "faq.q2": "首次大型空投是什么时候？", "faq.a2": "按路线图，上架计划在<b>第 3 阶段</b>，即 2028 年 4 月至 7 月。首次大型空投在上架前后发放，确切日期将在官方渠道公布。", "faq.q3": "75% 收入分成如何计算？", "faq.a3": "每个赛季结束时，广告与游戏收入的 75% 转入奖励池，按<b>排行榜名次</b>发放给玩家。其余 25% 用于开发、基础设施与营销。", "faq.q4": "锁定金库何时解锁？", "faq.a4": "300,000,000 $WREC（总供应量的 23.08%）<b>锁定至 2028 年 11 月</b>，之后逐步释放。", "faq.q5": "这是骗局或空壳项目吗？", "faq.a5": "智能合约已部署在 BNB Smart Chain，白皮书在 GitHub 公开，合约地址发布在本站供任何人核验。奖励模型依托<b>真实的广告与游戏收入</b>，而非固定承诺。", "faq.q6": "如何参与？", "faq.a6": "在 Telegram 中通过 <b>WatchRecGameBot</b> 打开游戏即可。积分会自动计入赛季，上架后奖励将发送到你的钱包。", "foot.about": "运行在 BNB Smart Chain 上的游戏生态，以 Telegram 小程序街机游戏和回馈 75% 收入的可持续空投模式成长。", "foot.proj": "项目", "foot.wp": "白皮书", "foot.game": "游戏机器人", "foot.ver": "验证", "foot.ca": "合约地址 · BEP-20", "foot.rights": "保留所有权利。", "foot.disc": "免责声明：本页信息不构成投资建议。加密资产风险极高，请自行研究。代币分配时间表取决于上架进程，可能发生变化。", "bb.h": "通过市场回购（buy-back）进行分发", "bb.sub": "空投代币不来自增发，而是每个赛季在市场上买入", "bb.p1": "当全部代币进入市场、$WREC 开始交易后，发放给参与游戏玩家的空投奖励<b>不会直接从总供应量中划出</b>。每个赛季结束时，平台将广告与游戏收入的 <b>75%</b> 用于<b>在市场上买入 $WREC</b>，再按排行榜名次以空投形式分发给玩家。", "bb.p2": "这一做法同时带来两个结果：奖励池不会增加流通供应，因此模式保持<b>可持续</b>；回购定期在市场上进行，有助于代币<b>保持价值</b>。也就是说，玩家的收益来自项目真实产生的收入与真实的市场需求。", "bb.f1": "广告与游戏收入", "bb.f2": "收入的 75%", "bb.f3": "在市场上买入 $WREC", "bb.f4": "空投给玩家", "bb.note": "说明：该机制同样在上市之后、随 3 个月赛季周期一同启动。回购金额取决于赛季收入，不构成固定或保证的回报。"}, "ko": {"wp.local": "사이트에서 읽기", "foot.gh": "GitHub 저장소", "wp.close": "닫기", "wp.kick": "공식 문서 · v1.0 · 2026", "wp.src": "출처: 프로젝트 GitHub 저장소의 공식 WHITEPAPER.md이며 원문은 언제든 확인할 수 있습니다.", "wp.official": "GitHub에서 공식 영문 백서 열기 →", "nav.tok": "토크노믹스", "nav.road": "로드맵", "nav.rev": "보상 모델", "nav.faq": "질문", "nav.play": "지금 플레이", "hero.h1a": "BNB Chain에서", "hero.h1b": "플레이하고 버세요.", "hero.tag": "BSC · 네온 게이밍 생태계", "hero.lead": "WatchRec은 텔레그램 미니 앱 아케이드 게임이며, 수익의 75%를 플레이어와 나누는 지속 가능한 3개월 에어드롭 주기로 운영되는 BEP-20 토큰 $WREC입니다.", "hero.cta1": "텔레그램 게임 플레이", "hero.cta2": "백서", "hero.ca": "컨트랙트 주소 · BEP-20", "hero.copy": "복사", "tok.title": "토크노믹스", "tok.total": "13억 $WREC", "tok.airdropShort": "에어드롭", "tok.l1": "에어드롭 및 게임 보상", "tok.l2": "잠긴 트레저리", "tok.l3": "프리세일 / 공개 판매", "tok.l4": "유동성 풀", "tok.l5": "마케팅", "tok.l6": "팀 및 창립자", "tok.lock": "잠긴 트레저리 · 2028년 11월", "st.1": "총 공급량", "st.2": "네트워크", "st.3": "수익 배분", "st.4": "보상 주기", "st.4v": "3개월 시즌", "note.t": "보상은 오늘 시작되지 않습니다: 먼저 상장, 그 다음 3개월 주기", "note.p": "3개월 에어드롭 주기는 <b>$WREC이 거래소에 상장된 이후에만</b> 시작됩니다. 상장 전에는 게임 점수와 <b>WRGP</b>가 계속 쌓이지만, 토큰 분배는 상장 무렵의 첫 대규모 에어드롭과 함께 이루어집니다. 오늘부터 3개월마다 지급된다는 주장은 <b>사실이 아닙니다</b>.", "note.c1": "상장: 3단계 · 2028년 4–7월", "note.c2": "첫 에어드롭: 상장 무렵", "note.c3": "잠긴 트레저리: 2028년 11월", "tok.eyebrow": "토큰 분배", "tok.h2": "13억 $WREC은 어떻게 분배되나요?", "tok.p": "가장 큰 비중은 플레이어에게 직접 돌아갑니다. 에어드롭과 게임 내 보상이 총 공급량의 35%입니다. 트레저리 비중은 2028년 11월까지 잠겨 있습니다.", "tok.supply": "총 공급량", "tok.note": "모든 비중의 합은 정확히 100%입니다.", "tok.r1": "에어드롭 및 게임 내 보상", "tok.r1s": "3개월 시즌 보상과 첫 대규모 에어드롭", "tok.r2": "잠긴 트레저리 및 개발", "tok.r2s": "2028년 11월까지 잠김", "tok.r3": "프리세일 / 공개 판매", "tok.r3s": "상장 전 커뮤니티 판매", "tok.r4": "유동성 풀", "tok.r4s": "거래소 유동성과 가격 안정", "tok.r5": "마케팅 및 생태계 성장", "tok.r5s": "광고, 파트너십, 성장", "tok.r6": "팀 및 창립자", "tok.r6s": "장기 개발 비중", "road.eyebrow": "타임라인", "road.h2": "로드맵", "road.p": "컨트랙트 배포부터 트레저리 해제까지 네 단계, 모든 날짜는 공개되어 검증할 수 있습니다.", "road.p1": "1단계 — 스마트 컨트랙트 및 백서", "road.p1w": "완료", "road.done": "완료", "road.p1d": "BEP-20 스마트 컨트랙트가 BNB Smart Chain에 배포되었고 백서 저장소가 GitHub에 공개되었습니다.", "road.p2": "2단계 — 텔레그램 미니 앱 아케이드", "road.p2w": "진행 중", "road.act": "진행 중", "road.p2d": "아케이드 게임이 텔레그램 안에서 운영되며 <b>WRGP 파밍</b>이 진행 중입니다. 점수는 상장 후 시작되는 시즌을 위해 기록됩니다.", "road.p3": "3단계 — 에어드롭 및 거래소 상장", "road.p3w": "2028년 4월 – 7월", "road.next": "계획됨", "road.p3d": "이어서 거래소 상장이 진행되고 <b>첫 대규모 에어드롭</b>이 상장 무렵 플레이어에게 분배됩니다. 3개월 수익 배분 주기는 그때 시작되며 그 전에는 아닙니다.", "road.p4": "4단계 — 잠긴 트레저리 해제", "road.p4w": "2028년 11월", "road.p4d": "트레저리와 개발 비중이 해제되어 생태계 성장과 장기 개발에 단계적으로 사용됩니다.", "rev.eyebrow": "지속 가능한 보상 모델", "rev.h2": "지속 가능한 3개월 에어드롭 및 보상 모델", "rev.p1": "토큰이 거래소에 상장되면 생태계는 강력한 순환 모델로 전환됩니다. 게임 점수가 초기화되고 플레이어는 <b>3개월 시즌</b>에서 경쟁합니다. 플랫폼의 모든 광고 및 게임 수익의 <b>75%</b>가 매 시즌 리더보드 순위에 따라 에어드롭으로 분배됩니다.", "rev.p2": "보상은 고정된 트레저리가 아니라 플랫폼이 시즌마다 새로 만드는 <b>실제 수익</b>에서 나옵니다. 따라서 지속 가능성과 토큰의 실제 사용처가 만들어집니다.", "rev.c1": "거래소 상장", "rev.c2": "3개월 시즌", "rev.c3": "점수 초기화", "rev.c4": "수익의 75%", "rev.c5": "에어드롭 분배", "rev.cap": "광고 및 게임 수익을 플레이어에게", "rev.s1t": "01 · 시즌", "rev.s1d": "점수가 초기화되고 새로운 3개월 시즌이 열리며 플레이어가 리더보드에서 경쟁합니다.", "rev.s2t": "02 · 수익", "rev.s2d": "시즌 동안 발생한 광고 및 게임 수익의 75%가 보상 풀로 들어갑니다.", "rev.s3t": "03 · 에어드롭", "rev.s3d": "보상 풀은 3개월마다 리더보드 순위에 따라 플레이어 지갑으로 분배됩니다.", "rev.after": "이 주기는 상장 이후 시작됩니다. 그 전까지 플레이어는 점수와 WRGP를 쌓고, 첫 대규모 에어드롭은 상장 무렵 지급됩니다.", "faq.eyebrow": "자주 묻는 질문", "faq.h2": "에어드롭은 언제 시작되나요?", "faq.p": "핵심: 보상은 오늘이 아니라 상장 이후 시작됩니다.", "faq.q1": "지금부터 3개월마다 에어드롭이 지급되나요?", "faq.a1": "아니요. 3개월 보상 주기는 <b>$WREC이 거래소에 상장된 이후에만</b> 시작됩니다. 그때까지 점수와 WRGP가 쌓이며, 토큰 분배는 상장 무렵의 첫 대규모 에어드롭과 함께 이루어집니다.", "faq.q2": "첫 대규모 에어드롭은 언제인가요?", "faq.a2": "로드맵에 따르면 상장은 <b>3단계</b>, 즉 2028년 4월에서 7월 사이에 계획되어 있습니다. 첫 대규모 에어드롭은 상장 무렵 분배되며 정확한 날짜는 공식 채널에서 발표됩니다.", "faq.q3": "75% 수익 배분은 어떻게 계산되나요?", "faq.a3": "매 시즌 종료 시 광고 및 게임 수익의 75%가 보상 풀로 옮겨져 <b>리더보드 순위</b>에 따라 분배됩니다. 나머지 25%는 개발, 인프라, 마케팅에 사용됩니다.", "faq.q4": "잠긴 트레저리는 언제 풀리나요?", "faq.a4": "300,000,000 $WREC(총 공급량의 23.08%)이 <b>2028년 11월까지 잠겨</b> 있으며 단계적으로 해제됩니다.", "faq.q5": "사기나 빈 프로젝트인가요?", "faq.a5": "스마트 컨트랙트는 BNB Smart Chain에 배포되었고, 백서는 GitHub에 공개되어 있으며, 누구나 검증할 수 있도록 컨트랙트 주소가 사이트에 게시됩니다. 보상 모델은 고정된 약속이 아닌 <b>실제 광고 및 게임 수익</b>에 연결됩니다.", "faq.q6": "어떻게 참여하나요?", "faq.a6": "텔레그램에서 <b>WatchRecGameBot</b>으로 게임을 열면 됩니다. 점수는 자동으로 시즌에 기록되고 상장 후 보상이 지갑으로 전송됩니다.", "foot.about": "텔레그램 미니 앱 아케이드 게임과 수익의 75%를 나누는 지속 가능한 에어드롭 모델로 성장하는 BNB Smart Chain 게임 생태계.", "foot.proj": "프로젝트", "foot.wp": "백서", "foot.game": "게임 봇", "foot.ver": "검증", "foot.ca": "컨트랙트 주소 · BEP-20", "foot.rights": "모든 권리 보유.", "foot.disc": "면책 조항: 이 페이지의 정보는 투자 조언이 아닙니다. 암호화폐 자산은 높은 위험을 가집니다. 직접 조사하세요. 토큰 분배 일정은 상장 절차에 따라 달라질 수 있습니다.", "bb.h": "시장 매수(바이백)를 통한 분배", "bb.sub": "에어드롭 토큰은 발행 물량이 아니라 매 시즌 시장에서 매수합니다", "bb.p1": "모든 토큰이 시장에 풀리고 $WREC이 거래되기 시작하면, 에어드롭을 받기 위해 게임을 하는 플레이어에게 지급되는 보상은 <b>총 공급량에서 차감되지 않습니다</b>. 매 시즌 종료 시 플랫폼은 광고 및 게임 수익의 <b>75%</b>로 <b>시장에서 $WREC을 매수</b>하고, 이 토큰을 리더보드 순위에 따라 플레이어에게 에어드롭으로 분배합니다.", "bb.p2": "이 방식은 두 가지 결과를 동시에 가져옵니다. 보상 풀이 유통 물량을 늘리지 않으므로 모델이 <b>지속 가능</b>하게 유지되고, 정기적인 시장 매수는 토큰이 <b>가치를 지키는 데</b> 기여합니다. 즉 플레이어의 수익은 프로젝트가 만들어내는 실제 수익과 시장의 실제 수요에 기반합니다.", "bb.f1": "광고 및 게임 수익", "bb.f2": "수익의 75%", "bb.f3": "시장에서 $WREC 매수", "bb.f4": "플레이어에게 에어드롭", "bb.note": "참고: 이 메커니즘 역시 상장 이후 3개월 시즌 주기와 함께 시작됩니다. 매수 금액은 시즌 수익에 따라 달라지며, 고정되거나 보장된 수익이 아닙니다."}};
+</script>
+<script>
+
+(function(){
+var TR={};
+document.querySelectorAll('[data-i18n]').forEach(function(el){TR[el.getAttribute('data-i18n')]=el.innerHTML;});
+var D={tr:TR}; for(var k in I18N){D[k]=I18N[k];}
+var L=[['tr','🇹🇷','Türkçe'],['en','🇬🇧','English'],['ru','🇷🇺','Русский'],['es','🇪🇸','Español'],['zh','🇨🇳','中文'],['ko','🇰🇷','한국어']];
+var menu=document.getElementById('langMenu'),btn=document.getElementById('langBtn'),
+    flag=document.getElementById('langFlag'),lbl=document.getElementById('langLbl');
+L.forEach(function(x){var b=document.createElement('button');b.type='button';b.setAttribute('role','option');
+b.dataset.code=x[0];b.innerHTML='<span>'+x[1]+'</span><span>'+x[2]+'</span>';
+b.addEventListener('click',function(){setLang(x[0]);closeMenu();});
+menu.appendChild(b);});
+function closeMenu(){menu.classList.remove('open');btn.setAttribute('aria-expanded','false');}
+function setLang(c){
+  if(!D[c])c='tr';
+  var d=D[c];
+  document.querySelectorAll('[data-i18n]').forEach(function(el){
+    var k=el.getAttribute('data-i18n'); if(d[k]!==undefined&&d[k]!==''){el.innerHTML=d[k];}});
+  var m=L.filter(function(x){return x[0]===c;})[0]||L[0];
+  flag.textContent=m[1]; lbl.textContent=m[0].toUpperCase();
+  document.documentElement.lang=c; document.documentElement.setAttribute('data-lang',c);
+  window.__wrecLang=c;
+  menu.querySelectorAll('button').forEach(function(b){b.classList.toggle('active',b.dataset.code===c);});
+  try{localStorage.setItem('wrec.lang',c);}catch(e){}
+  closeMenu();
+}
+btn.addEventListener('click',function(e){e.stopPropagation();
+  var o=menu.classList.toggle('open');btn.setAttribute('aria-expanded',o?'true':'false');});
+document.addEventListener('click',function(e){if(!e.target.closest('#lang'))closeMenu();});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')closeMenu();});
+
+var cb=document.getElementById('copyBtn'),ca='0x38eb8b7C8E1305fcc041E5e8E352fBB05F603Afb',
+    toast=document.createElement('div');toast.className='toast';document.body.appendChild(toast);
+function toastMsg(t){toast.textContent=t;toast.classList.add('show');
+  clearTimeout(toast._t);toast._t=setTimeout(function(){toast.classList.remove('show');},1900);}
+function copyText(t){
+  if(navigator.clipboard&&window.isSecureContext){return navigator.clipboard.writeText(t);}
+  return new Promise(function(res,rej){var ta=document.createElement('textarea');ta.value=t;
+    ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');res();}catch(e){rej(e);}document.body.removeChild(ta);});
+}
+if(cb){cb.addEventListener('click',function(){
+  copyText(ca).then(function(){
+    cb.classList.add('done');toastMsg('✓ Kontrat adresi kopyalandı');
+    var old=cb.getAttribute('data-i18n');cb.removeAttribute('data-i18n');
+    var orig=cb.textContent;cb.textContent='KOPYALANDI';
+    setTimeout(function(){cb.textContent=orig;cb.setAttribute('data-i18n',old);cb.classList.remove('done');},1800);
+  }).catch(function(){toastMsg('Kopyalanamadı — adresi elle seçin');});
+});}
+
+var bg=document.getElementById('burger'),nav=document.getElementById('nav');
+if(bg){bg.addEventListener('click',function(){bg.classList.toggle('on');nav.classList.toggle('open');});
+  nav.querySelectorAll('a').forEach(function(a){a.addEventListener('click',function(){nav.classList.remove('open');bg.classList.remove('on');});});}
+
+var hd=document.getElementById('hd');
+addEventListener('scroll',function(){hd.classList.toggle('solid',scrollY>20);},{passive:true});
+
+var yr=document.getElementById('yr'); if(yr)yr.textContent=new Date().getFullYear();
+
+var items=document.querySelectorAll('.tl-item');
+if('IntersectionObserver' in window){
+  var io=new IntersectionObserver(function(es){es.forEach(function(en){
+    if(en.isIntersecting){en.target.classList.add('in');io.unobserve(en.target);}});},{threshold:.16});
+  items.forEach(function(i){i.classList.add('reveal');io.observe(i);});
+}
+var saved=null; try{saved=localStorage.getItem('wrec.lang');}catch(e){}
+setLang(saved||'tr');
+})();
+
+</script>
+
+<script>
+(function(){
+  var ov=document.getElementById('wpOverlay'); if(!ov) return;
+  var closeBtn=document.getElementById('wpClose');
+  var lastFocus=null;
+  function curLang(){ return window.__wrecLang || document.documentElement.getAttribute('data-lang') || 'tr'; }
+  var MAP={tr:'wpTr',en:'wpEn',ru:'wpRu',es:'wpEs',zh:'wpZh',ko:'wpKo'};
+  function syncLang(){
+    var c=curLang(); var id=MAP[c]||'wpEn';
+    Object.keys(MAP).forEach(function(k){
+      var el=document.getElementById(MAP[k]); if(el) el.hidden = (MAP[k]!==id);
+    });
+    var t=document.getElementById('wpTitle');
+    if(t) t.textContent = document.getElementById(id).querySelector('h1').textContent;
+  }
+  function openWP(ev){
+    if(ev) ev.preventDefault();
+    lastFocus=document.activeElement;
+    syncLang();
+    ov.classList.add('open');
+    ov.setAttribute('aria-hidden','false');
+    document.body.classList.add('wp-lock');
+    ov.scrollTop=0;
+    setTimeout(function(){ closeBtn.focus(); },60);
+  }
+  function closeWP(){
+    ov.classList.remove('open');
+    ov.setAttribute('aria-hidden','true');
+    document.body.classList.remove('wp-lock');
+    if(history && location.hash==='#whitepaper'){ try{history.replaceState(null,'',location.pathname+location.search);}catch(e){} }
+    if(lastFocus&&lastFocus.focus) lastFocus.focus();
+  }
+  ['wpOpen','wpOpenFoot'].forEach(function(id){
+    var b=document.getElementById(id); if(b) b.addEventListener('click',openWP);
+  });
+  closeBtn.addEventListener('click',closeWP);
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'&&ov.classList.contains('open')) closeWP();
+  });
+  if(location.hash==='#whitepaper') setTimeout(openWP,50);
+  window.addEventListener('hashchange',function(){
+    if(location.hash==='#whitepaper') openWP();
+  });
+  // keep overlay language in sync with the global switcher
+  var mo=new MutationObserver(syncLang);
+  mo.observe(document.documentElement,{attributes:true,attributeFilter:['data-lang']});
+  syncLang();
+})();
+</script>
+</body>
+</html>
+
