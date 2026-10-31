@@ -131,7 +131,7 @@ async function syncScore(keep) {
 }
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) syncScore(true);
-  else if (!cur && Date.now() - lastPull > 20000) loadRemote();   // uygulamaya dönünce buluttaki en yeni kaydı al
+  else { relock(); if (!cur && Date.now() - lastPull > 20000) loadRemote(); }   // dönüşte: kilit/konum tazele + buluttaki en yeni kayıt
 });
 
 function regen() {
@@ -142,11 +142,13 @@ function regen() {
 function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2200); }
 function render() {
   regen();
-  $('#bal').textContent = fmt(S.wrgp);
-  $('#lives').textContent = S.lives;
-  $('#bestM3').textContent = S.best.m3;
-  $('#bestVF').textContent = S.best.vf;
-  $('#invCount').textContent = S.invited;
+  const setT = (sel, v) => { const e = $(sel); if (e) e.textContent = v; };   // dil değişimi düğümü yenilediyse sessizce geç
+  setT('#bal', fmt(S.wrgp));
+  setT('#lives', S.lives);
+  setT('#livesMax', MAX_LIVES);
+  setT('#bestM3', S.best.m3);
+  setT('#bestVF', S.best.vf);
+  setT('#invCount', S.invited);
   const out = S.lives <= 0;
   document.querySelectorAll('[data-play]').forEach(b => b.disabled = out);
   const full = S.lives >= MAX_LIVES;
@@ -311,6 +313,7 @@ window.closeModal = closeModal;
 
 /* ---------- Reklam (Monetag + TADS) ---------- */
 let adBusy = false;
+let adShowing = false;   // reklam açıkken geri sayımlar ve oyun saati durur
 const AD_TIMEOUT_MS = 180000;   // callback hiç gelmezse buton sonsuza kadar kilitli kalmasın
 
 /* A) Monetag ödüllü reklam – Zone 12011278 */
@@ -332,8 +335,12 @@ function tadsInit() {
     widgetId: TADS_WIDGET_ID,
     type: 'fullscreen',
     debug: false,
-    onShowReward: () => { if (tadsCb) tadsCb.ok(); },                                   // ödül yalnızca bu olay gelirse verilir
-    onAdsNotFound: () => { if (tadsCb) tadsCb.fail(new Error('tads-nofill')); }         // reklam yok → sıradaki ağ
+    onShowReward: () => {                                                              // ödül yalnızca bu olay gelirse verilir
+      if (!tadsCb || tadsCb.done) return;                                             // bayat olay: yok sayılır
+      if (Date.now() - tadsCb.t0 < 500) return;                                       // önceki reklamdan kalan gecikmeli olay
+      tadsCb.ok();
+    },
+    onAdsNotFound: () => { if (tadsCb && !tadsCb.done) tadsCb.fail(new Error('tads-nofill')); }   // reklam yok → sıradaki ağ
   });
   return tadsCtrl;
 }
@@ -341,9 +348,10 @@ function showTads() {
   return new Promise((resolve, reject) => {
     if (!tadsReady()) return reject(new Error('tads-sdk-missing'));
     let done = false;
-    const finish = (fn, v) => { if (done) return; done = true; clearTimeout(t); tadsCb = null; fn(v); };
+    let my = null;
+    const finish = (fn, v) => { if (done) return; done = true; clearTimeout(t); if (tadsCb === my) tadsCb = null; my.done = true; fn(v); };
     const t = setTimeout(() => finish(reject, new Error('tads-timeout')), AD_TIMEOUT_MS);
-    tadsCb = { ok: () => finish(resolve), fail: err => finish(reject, err) };
+    my = { t0: Date.now(), done: false, ok: () => finish(resolve), fail: err => finish(reject, err) }; tadsCb = my;
     try {
       const ctrl = tadsInit();
       if (!ctrl || typeof ctrl.showAd !== 'function') return finish(reject, new Error('tads-bad-controller'));
@@ -395,16 +403,16 @@ function showLiteBits() {
 }
 /* LiteBits: iki reklam art arda gösterilir; yalnızca ikisi de tamamlanırsa resolve olur (= +1 can). */
 async function showLiteBitsPair() {
-  if (liteQuotaLeft() <= 0) throw new Error('litebits-daily-limit');
+  if (liteQuotaLeft() < 1) throw new Error('litebits-daily-limit');            // bugünkü gösterim hakkı bitti
   if (lbState().p === 0) {
+    if (liteQuotaLeft() < 2) throw new Error('litebits-daily-limit');          // iki reklam sığmıyorsa hiç başlatma
     await showLiteBits();
     const lb = lbState(); lb.n++; lb.p = 1; save();                 // 1/2 tamam; ikincisi yarım kalırsa bir sonraki LiteBits reklamı tamamlar
-    if (liteQuotaLeft() <= 0) throw new Error('litebits-daily-limit');
     toast(tl('lb_step'));
     await new Promise(r => setTimeout(r, 1500));
   }
-  await showLiteBits();
-  const lb2 = lbState(); lb2.n++; lb2.p = 0; save();               // 2/2 tamam → can verilir
+  await showLiteBits();                                            // 2/2 (ya da yarım kalan 1/2'nin devamı) → can verilir
+  const lb2 = lbState(); lb2.n++; lb2.p = 0; save();
 }
 /* Reklam ağları: her seferinde rastgele sırayla denenir; ilk başarılı olan ödül verir (tek sefer). */
 const AD_NETWORKS = [
@@ -415,15 +423,16 @@ const AD_NETWORKS = [
 function shuffle(arr) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 async function watchAd(onDone, onFail) {
   if (adBusy) { if (onFail) onFail(); return; }
-  adBusy = true;
-  let ok = false;
+  adBusy = true; adShowing = true; relock();
+  let ok = false, tried = 0;
   const list = shuffle(AD_NETWORKS.filter(n => n.ok()));          // yalnızca hazır olan ağlar
   for (const n of list) {
+    tried++;
     try { await n.show(); ok = true; break; }
     catch (err) { console.error(n.name + ' hata:', err); }          // olmadıysa sıradaki ağa geç
   }
-  adBusy = false;
-  if (ok) onDone(); else { toast(tl('ad_none')); if (onFail) onFail(); }
+  adBusy = false; adShowing = false; relock();                     // reklamdan dönüş: kilit ve sayfa konumu tazelenir
+  if (ok) onDone(); else { toast(tl(tried ? 'ad_fail' : 'ad_none')); if (onFail) onFail(); }
 }
 /* Buton: can 5'ten azsa aktif → +1 can */
 $('#adBtn').onclick = () => {
@@ -434,6 +443,12 @@ $('#adBtn').onclick = () => {
 /* ---------- Telegram dikey kaydırma kilidi (oyun sırasında aşağı kaydırarak kapanmayı engeller) ---------- */
 function lockSwipes() { try { if (tg && tg.disableVerticalSwipes) tg.disableVerticalSwipes(); } catch (_) {} }
 function unlockSwipes() { /* kilit uygulama boyunca açık kalır; çıkış sol üstteki Telegram kapat butonuyla */ lockSwipes(); }
+/* Kilit sıfırlanmış ya da sayfa kaymış olabilir: her bölüm geçişinde, reklamdan dönüşte ve uygulama öne gelince tazele */
+function relock() {
+  lockSwipes();
+  try { window.scrollTo(0, 0); } catch (_) {}
+  try { if (tg && tg.expand) tg.expand(); } catch (_) {}
+}
 setInterval(lockSwipes, 2500);                   // Telegram ayarı sıfırlarsa yeniden kilitle
 document.addEventListener('visibilitychange', lockSwipes);
 window.addEventListener('scroll', () => { if (window.scrollY) window.scrollTo(0, 0); }, { passive: true });
@@ -497,17 +512,26 @@ const ui = {
     };
     timer = setInterval(() => {
       if (!cur) { over = true; clearInterval(timer); return; }
-      if (busy || left === null) return;
+      if (busy || left === null || adShowing || document.hidden) return;   // reklam/arka plan: süre durur
       if (--left <= 0) { done(false); return; }                    // süre doldu → oyun biter, ödüller verilir
       paint();
     }, 1000);
   },
+  /* Bölüm ödülü kazanıldığı ANDA bakiyeye yazılır: oyun beklenmedik kapansa da puan kaybolmaz */
+  credit: n => {
+    n = Math.floor(Number(n) || 0);
+    if (n <= 0) return 0;
+    S.wrgp = clampW(S.wrgp + n); save(); render();
+    return n;
+  },
   end: r => {
     unlockSwipes();   // oyun bitti: normal kaydırma geri açılır
-    if (r.reward > 0) S.wrgp = clampW(S.wrgp + r.reward);
+    const rw = Math.max(0, Math.floor(Number(r.reward) || 0));
+    if (!r.credited && rw > 0) S.wrgp = clampW(S.wrgp + rw);   // ödül daha önce yazılmadıysa (Match-3) şimdi yaz
     if (r.score > S.best[r.kind]) S.best[r.kind] = r.score;
     save(); render();
-    modal(`<h2>${r.title}</h2><p>${r.lines.join('<br>')}</p><div class="reward">+${r.reward} WRGP</div>
+    const note = r.credited ? `<p class="muted">${tl('reward_added')}</p>` : '';
+    modal(`<h2>${r.title}</h2><p>${r.lines.join('<br>')}</p><div class="reward">+${rw} WRGP</div>${note}
       <button class="btn primary" onclick="closeModal();startGame('${r.kind}')" ${S.lives <= 0 ? 'disabled' : ''}>${tl('again')}</button>
       <button class="btn" onclick="closeModal();quitGame()">${tl('to_menu')}</button>`);
   }

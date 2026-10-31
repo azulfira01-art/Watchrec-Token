@@ -448,14 +448,15 @@ const Volfied = (() => {
       if (state !== 'play') return;
       cleared++;
       if (li < FIRST_N) lvlReward = perfect ? R_FULL : R_STD;       // 1-10: 5 WRGP (%100 ise 8)
-      else lvlReward = li === NL - 1 ? R_LAST : R_HI;              // 11-19: 10, 20: 20
+      else lvlReward = li === NL - 1 ? R_LAST : R_HI;              // 11-20: 25 WRGP
       earned += lvlReward;
+      if (ui.credit) ui.credit(lvlReward);                         // bölüm ödülü ANINDA bakiyeye yazılır
       bonus = unlimited() ? 0 : Math.ceil(timeLeft / 1000) * 10;
       score += bonus;
       lives = Math.min(maxL(li), lives + 1);
       dir = null; hp('medium');
-      if (li === FIRST_N - 1) { earned += FIRST_BONUS; firstShow = true; }   // ilk periyot bitti: bonus + tebrik, oyun 11. bölümle sürer
-      if (li >= NL - 1) { earned += FINAL_BONUS; return finish(true, 'win'); }
+      if (li === FIRST_N - 1) { earned += FIRST_BONUS; firstShow = true; if (ui.credit) ui.credit(FIRST_BONUS); }   // ilk periyot bitti: bonus + tebrik, oyun 11. bölümle sürer
+      if (li >= NL - 1) { earned += FINAL_BONUS; if (ui.credit) ui.credit(FINAL_BONUS); return finish(true, 'win'); }
       state = 'clear'; stT = firstShow ? 4200 : 2300; hud();
     }
     function finish(win, why) {
@@ -466,10 +467,11 @@ const Volfied = (() => {
       const lines = [tl('vf_l1', { c: cleared, n: NL }), tl('vf_l2', { p: Math.round(pct * 100) }), tl('vf_l3', { s: score }), tl('vf_l4', { r: reward })];
       if (cleared >= FIRST_N) lines.push(tl('vf_l5', { b: FIRST_BONUS }));
       if (win) lines.push(tl('vf_l6', { b: FINAL_BONUS }));
-      ui.end({ kind: 'vf', score, reward, win, title, lines });
+      ui.end({ kind: 'vf', score, reward, win, title, lines, credited: true });   // ödüller bölüm sonunda zaten yazıldı
     }
     function step() {
       if (!modalEl.classList.contains('hidden')) return;
+      if (adShowing || document.hidden) return;   // reklam/arka plan: süre işlemez, oyun sonlanmaz
       updateFx();
       if (state === 'intro' || state === 'pause') { stT -= STEP; if (stT <= 0) state = 'play'; return; }
       if (state === 'clear') { stT -= STEP; if (stT <= 0) startLevel(li + 1); return; }
